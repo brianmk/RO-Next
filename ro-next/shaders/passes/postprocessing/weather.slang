@@ -173,23 +173,45 @@ func weatherParticles(uv: float2, kind: uint, time: float, intensity: float) -> 
     return result;
 }
 
+// One layer of drifting noise. The low-frequency domain warp breaks up the
+// regular FBM lattice and gives the layer a soft, rolling edge instead of a
+// static grain.
+func cloudLayer(p: float2, camera_offset: float2, time: float, scale: float, direction: float2, speed: float, parallax: float, color: float3, opacity: float) -> float4 {
+    let base = p * scale + camera_offset * parallax + direction * time * speed;
+    let warp = float2(
+        fbm(base * 0.75 + float2(1.7, 9.2) + direction.yx * time * speed * 0.6),
+        fbm(base * 0.75 + float2(8.3, 2.8) - direction * time * speed * 0.5)
+    );
+    let n = fbm(base + (warp - 0.5) * 1.35);
+    let density = smoothstep(0.34, 0.78, n) * opacity;
+    return float4(color, density);
+}
+
 func weatherSheets(uv: float2, kind: uint, time: float, intensity: float) -> float4 {
     let aspect = max(1.0, float(global_uniforms.forward_size.x) / max(1.0, float(global_uniforms.forward_size.y)));
     let p = float2(uv.x * aspect, uv.y);
-    // Anchor the sheets to the world, not the camera: the same patch of fog
-    // stays in front of the player as they walk through it. The factor is in
-    // noise cells per world unit, so it is independent of resolution.
-    let camera_offset = global_uniforms.camera_position.xz;
+    // World anchoring: use Z directly so walking north makes the fog appear
+    // to slide south (the opposite screen direction), not follow the player.
+    let camera_offset = float2(global_uniforms.camera_position.x, global_uniforms.camera_position.z);
 
     if (kind == 4u) {
-        let n = fbm(p * float2(3.0, 2.2) + camera_offset * 0.012 + float2(time * 0.006, 0.0));
-        let cloud = smoothstep(0.48, 0.78, n);
-        return float4(float3(0.78, 0.84, 0.95), cloud * 0.16 * intensity);
+        let far = cloudLayer(p, camera_offset, time, 1.7, float2(-0.4, 0.9), 0.45, 0.008, float3(0.72, 0.80, 0.94), 0.10 * intensity);
+        let near = cloudLayer(p, camera_offset, time, 3.4, float2(0.7, 0.5), 0.80, 0.016, float3(0.84, 0.88, 1.0), 0.12 * intensity);
+        let alpha = far.a + near.a * (1.0 - far.a);
+        let color = (far.rgb * far.a + near.rgb * near.a) / max(alpha, 0.0001);
+        return float4(color, alpha);
     }
+
     if (kind == 5u) {
-        let n = fbm(p * float2(2.0, 1.7) + camera_offset * 0.035 + float2(time * 0.008, time * 0.003));
-        let mist = smoothstep(0.30, 0.78, n);
-        return float4(float3(0.62, 0.70, 0.82), mist * 0.20 * intensity);
+        // Three independent fog layers: broad background, rolling middle and
+        // fast low wisps. Each has a different direction and parallax factor.
+        let far = cloudLayer(p, camera_offset, time, 1.3, float2(-0.35, 0.9), 0.28, 0.010, float3(0.52, 0.61, 0.74), 0.13 * intensity);
+        let middle = cloudLayer(p, camera_offset, time, 2.4, float2(0.75, 0.45), 0.48, 0.024, float3(0.64, 0.72, 0.84), 0.12 * intensity);
+        let near = cloudLayer(p, camera_offset, time, 4.3, float2(-0.8, 0.2), 0.78, 0.045, float3(0.76, 0.82, 0.92), 0.10 * intensity);
+
+        let alpha = far.a + middle.a * (1.0 - far.a) + near.a * (1.0 - far.a) * (1.0 - middle.a);
+        let color = (far.rgb * far.a + middle.rgb * middle.a + near.rgb * near.a) / max(alpha, 0.0001);
+        return float4(color, alpha);
     }
     return float4(0.0);
 }
