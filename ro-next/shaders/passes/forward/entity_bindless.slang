@@ -129,7 +129,7 @@ func fragment(input: ForwardEntityBindlessVertexOutput) -> ForwardEntityFragment
     // unlit instance colour, texture alpha only.
     if ((input.flags & 2u) != 0u) {
         var flat_output: ForwardEntityFragmentOutput;
-        flat_output.color = float4(input.color.rgb, alpha_channel);
+        flat_output.color = float4(input.color.rgb * alpha_channel, alpha_channel);
         flat_output.depth = saturate(input.position.z);
         return flat_output;
     }

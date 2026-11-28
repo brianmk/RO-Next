@@ -799,13 +799,20 @@ impl Client {
             return;
         };
 
+        // Body layers on a target (for example Soul Link's blue tint) belong
+        // to the target, not the caster.
+        let body_entity_id = match layer.anchor {
+            crate::world::LayerAnchor::Target => target_entity_id.unwrap_or(source_entity_id),
+            _ => source_entity_id,
+        };
+
         match layer.kind {
             LayerKind::BodyFlash => {
                 if let Some(entity) = self
                     .client_state
                     .follow_mut(client_state().entities())
                     .iter_mut()
-                    .find(|entity| entity.get_entity_id() == source_entity_id)
+                    .find(|entity| entity.get_entity_id() == body_entity_id)
                 {
                     entity.start_body_flash(layer.tint, layer.hold_ms, layer.fade_ms, layer.additive, client_tick);
                 }
@@ -815,7 +822,7 @@ impl Client {
                     .client_state
                     .follow_mut(client_state().entities())
                     .iter_mut()
-                    .find(|entity| entity.get_entity_id() == source_entity_id)
+                    .find(|entity| entity.get_entity_id() == body_entity_id)
                 {
                     entity.start_body_squash(layer.duration_ms, layer.amplitude, client_tick);
                 }
@@ -825,7 +832,7 @@ impl Client {
                     .client_state
                     .follow_mut(client_state().entities())
                     .iter_mut()
-                    .find(|entity| entity.get_entity_id() == source_entity_id)
+                    .find(|entity| entity.get_entity_id() == body_entity_id)
                 {
                     entity.start_body_outline(layer.tint, layer.duration_ms, client_tick);
                 }
@@ -835,7 +842,7 @@ impl Client {
                     .client_state
                     .follow_mut(client_state().entities())
                     .iter_mut()
-                    .find(|entity| entity.get_entity_id() == source_entity_id)
+                    .find(|entity| entity.get_entity_id() == body_entity_id)
                 {
                     entity.start_body_wave(layer.duration_ms, layer.amplitude, client_tick);
                 }
