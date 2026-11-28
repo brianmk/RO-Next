@@ -471,7 +471,12 @@ impl Client {
         {
             let entities = self.client_state.follow_mut(client_state().entities());
             for entity in entities.iter_mut() {
-                let active = pulse_entity_ids.contains(&entity.get_entity_id().0) && !entity.is_dead() && !entity.is_fading();
+                // The server can expose Assumptio through EFST 110/473 or
+                // the classic actor option bit 0x800 (`OPT3_ASSUMPTIO`); the
+                // official client checks the option as well.
+                let active = (pulse_entity_ids.contains(&entity.get_entity_id().0) || entity.effect_state() & 0x800 != 0)
+                    && !entity.is_dead()
+                    && !entity.is_fading();
                 entity.set_status_pulse_outline(active);
             }
         }

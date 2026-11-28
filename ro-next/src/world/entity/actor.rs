@@ -59,6 +59,10 @@ impl Entity {
         self.get_common_mut().set_status_pulse_outline(active);
     }
 
+    pub fn effect_state(&self) -> u32 {
+        self.get_common().effect_state
+    }
+
     pub fn set_weapon_blink(&mut self, blink: bool) {
         self.get_common_mut().set_weapon_blink(blink);
     }
