@@ -211,6 +211,15 @@ impl Client {
             SkillId(2017), // RK_STORMBLAST
             SkillId(359),  // LK_BERSERK
             SkillId(8206), // MS_BERSERK
+            SkillId(490),  // CR_ACIDDEMONSTRATION (EF_CHEMICAL2)
+            SkillId(2476), // GN_CART_TORNADO (EF_CHEMICAL2DASH)
+            SkillId(2477), // GN_CARTCANNON (EF_CHEMICAL2DASH2)
+            SkillId(2217), // WL_TETRAVORTEX (EF_TETRA_GROUND)
+            SkillId(659),  // NPC_DRAGONFEAR (EF_DRAGONFEAR)
+            SkillId(83),   // WZ_METEOR (EF_METEORSTORM)
+            SkillId(85),   // WZ_VERMILION (EF_LORD)
+            SkillId(484),  // HW_GRAVITATION (EF_GRAVITATION)
+            SkillId(2267), // NC_SELFDESTRUCTION (EF_SUI_EXPLOSION)
         ];
 
         if DISPATCH_QUAKE_SKILLS.contains(&skill_id) {

@@ -60,11 +60,13 @@ impl PortedEffect for PotionPill {
 
         if frame == 0 {
             runtime.body_tint = Some(self.body_color());
-            runtime.quake();
             potion_pillar(runtime, 1.0, 50);
         }
 
         if frame == 18 {
+            // `RagEffect.cpp:24931`/`:15049`: the quake and the wave share
+            // the official frame 18, not frame 0.
+            runtime.quake();
             runtime.play_sound("effect\\ac_concentration.wav");
         }
 

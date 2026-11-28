@@ -8,6 +8,7 @@ pub mod alpha_down_ripples;
 pub mod aqua;
 pub mod aspersio;
 pub mod asura;
+pub mod volcano;
 pub mod bash;
 pub mod begin_spell_rings;
 pub mod begin_spell_swirl;
@@ -274,3 +275,5 @@ pub use water_ball2::WaterBall2;
 pub use white_light_trail::WhiteLightTrail;
 pub use white_spark::{White02Burst, WhiteSparkRing, WhiteSparkStreak};
 pub use whitespray::WhiteSpray;
+
+pub use volcano::VolcanoShockwave;
