@@ -257,6 +257,25 @@ impl Client {
             return;
         }
 
+        // Local environment preview (`/weather [clear|snow|...]`). This is a
+        // visual client-side control; the server remains authoritative for
+        // gameplay.
+        if let Some(rest) = text.trim().strip_prefix("/weather") {
+            let argument = rest.trim();
+
+            if argument.is_empty() {
+                let weather = self.environment.current_weather().map(|kind| kind.name()).unwrap_or("clear");
+                let hour = self.environment.hour();
+                self.push_chat_information(format!("Local environment: {hour:.1}h, weather {weather}."));
+            } else if self.environment.force_weather(argument) {
+                self.push_chat_information(format!("Local weather set to {}.", argument.to_ascii_lowercase()));
+            } else {
+                self.push_chat_information("Usage: /weather [clear|snow|sakura|leaves|clouds|clouds2|fog]".to_owned());
+            }
+
+            return;
+        }
+
         // Local aura style selection (`/aura <style>`). This is handled
         // entirely client-side before the slash command translation and is
         // never sent to the server.

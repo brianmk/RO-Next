@@ -68,6 +68,8 @@ pub struct Uniforms {
     pub camera_position: Vector4<f32>,
     pub animation_timer_ms: f32,
     pub ambient_light_color: Color,
+    /// Quantise the direct/ambient light into flat cel bands.
+    pub stylized_lighting: bool,
     /// Scene fog colour; `alpha == 0` disables fog.
     pub fog_color: Color,
     /// Scene fog distance window (`near`, `far`).
@@ -87,6 +89,7 @@ impl Default for Uniforms {
             camera_position: Vector4::zero(),
             animation_timer_ms: 0.0,
             ambient_light_color: Color::default(),
+            stylized_lighting: false,
             fog_color: Color::TRANSPARENT,
             fog_range: [0.0, 0.0],
             enhanced_lighting: false,

@@ -339,7 +339,7 @@ impl Client {
 
         time_phase!("load warp portal assets", {
             let warp_portal = WarpPortal::new(&texture_loader, &sprite_loader);
-            let weather = crate::world::Weather::new(&texture_loader);
+            let environment = crate::world::Environment::new(&texture_loader);
         });
 
         time_phase!("load spirit sphere assets", {
@@ -610,7 +610,7 @@ impl Client {
             skill_completion_tracker: SkillCompletionTracker::default(),
             aftercast_act_until: None,
             warp_portal,
-            weather,
+            environment,
             spirit_sphere_texture,
             teleport_vanish_sound_effect,
             recent_teleport_vanishes: Vec::new(),

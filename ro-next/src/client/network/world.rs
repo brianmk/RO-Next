@@ -371,9 +371,7 @@ impl Client {
         self.effect_holder.clear();
         self.level_99_aura_entities.clear();
         self.status_aura_flags.clear();
-        if let Some(weather) = self.weather.as_mut() {
-            weather.clear();
-        }
+        self.environment.clear_weather();
         self.chat_bubbles.clear();
         self.pending_item_drag = None;
         self.pending_item_drag = None;
@@ -479,6 +477,13 @@ impl Client {
             definition.name.to_owned(),
             icon,
         );
+
+        // rAthena uses EFST_SKE (status id 160) as its night signal. Only the
+        // local player's status changes the environment, matching the
+        // official client's `render.accountId == g_session.m_aid` gate.
+        if status_index == 160 && self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) == Some(entity_id) {
+            self.environment.set_server_night(active);
+        }
 
         // Data-driven body visuals (tints/alpha); the table lives in
         // `archive/data/client/status_visual_effects.ron`.
@@ -1457,11 +1462,9 @@ impl Client {
         let map_type = *self.client_state.follow(client_state().map_type());
         if crate::state::is_indoor_map_type(map_type) {
             crate::logging::log_debug!("ignoring outdoor weather effect {effect_id} on an indoor map");
-            if let Some(weather) = self.weather.as_mut() {
-                weather.clear();
-            }
-        } else if let Some(weather) = self.weather.as_mut() {
-            weather.set_effect(effect_id as i32, 0.0);
+            self.environment.clear_server_weather();
+        } else {
+            self.environment.set_server_effect(effect_id as i32);
         }
     }
 

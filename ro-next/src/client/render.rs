@@ -62,7 +62,7 @@ pub(crate) struct MapRenderContext<'a, 'm: 'a> {
     pub(crate) head_marks: &'a HeadMarks,
     pub(crate) cast_bars: &'a CastBars,
     pub(crate) skill_name_texts: &'a SkillNameTexts,
-    pub(crate) weather: Option<&'a crate::world::Weather>,
+    pub(crate) environment: &'a crate::world::Environment,
     pub(crate) spirit_sphere_texture: Option<&'a Arc<Texture>>,
     pub(crate) effect_renderer: &'a mut EffectRenderer,
     pub(crate) bottom_interface_renderer: &'a GameInterfaceRenderer,
@@ -448,14 +448,8 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
         );
 
         self.effect_holder.render(self.effect_renderer, self.current_camera);
-        if let Some(weather) = self.weather {
-            weather.render(
-                self.effect_renderer,
-                self.current_camera,
-                self.screen_size,
-                self.animation_timer_ms / 1000.0,
-            );
-        }
+        self.environment
+            .render_weather(self.effect_renderer, self.current_camera, self.screen_size);
         self.render_spirit_spheres();
 
         if let Some(player) = self.client_state.try_follow(this_entity()) {

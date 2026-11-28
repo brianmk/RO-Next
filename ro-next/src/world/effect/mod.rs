@@ -42,7 +42,7 @@ pub use self::status_visual::{StatusGroundRing, StatusLoopingEffect};
 pub use self::storm_cloud::StormCloud;
 pub use self::teleport_vanish::TeleportVanish;
 pub use self::warp::WarpPortal;
-pub use self::weather::Weather;
+pub use self::weather::{Kind as WeatherKind, Weather};
 
 /// Identity of a visual that lives exactly as long as one active status of one
 /// entity.

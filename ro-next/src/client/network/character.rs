@@ -287,9 +287,7 @@ impl Client {
         self.effect_holder.clear();
         self.level_99_aura_entities.clear();
         self.status_aura_flags.clear();
-        if let Some(weather) = self.weather.as_mut() {
-            weather.clear();
-        }
+        self.environment.clear_weather();
         self.point_light_manager.clear();
         self.audio_engine.clear_ambient_sound();
     }

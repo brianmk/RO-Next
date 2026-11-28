@@ -18,7 +18,7 @@ use ragnarok_packets::TilePosition;
 
 /// Names of slash commands that the client handles itself and therefore must
 /// not be forwarded to the server as atcommands.
-const CLIENT_SIDE_COMMANDS: [&str; 5] = ["nc", "w", "whisper", "bm", "where"];
+const CLIENT_SIDE_COMMANDS: [&str; 6] = ["nc", "w", "whisper", "bm", "where", "weather"];
 
 /// Requested battle-mode state of a `/bm` command.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
