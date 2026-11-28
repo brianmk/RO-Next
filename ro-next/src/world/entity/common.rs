@@ -1760,26 +1760,33 @@ impl Common {
         if self.status_pulse_outline
             && let Some(animation_data) = self.animation_data.as_ref()
         {
+            // Official `Player.cpp:1085-1124`: two additive sprite copies.
+            // The first uses `alpha 0x64` and a spread of `sin + 3`; the
+            // second uses `alpha 0x78` and `2*sin + 5`. The port approximates
+            // the screen-space spread as a small scale on the world sprite.
             let phase = ((client_tick.0 / 16).wrapping_mul(4) % 181) as f32;
-            let pulse = phase.to_radians().sin() * 1.5 + 5.0;
-            let spread_scale = 1.0 + pulse * 0.012;
-            animation_data.render(
-                instructions,
-                camera,
-                add_to_picker,
-                self.entity_id,
-                body_position,
-                &self.animation_state,
-                self.direction,
-                alpha * (0x78 as f32 / 255.0),
-                Color::rgb_u8(255, 255, 255),
-                self.scale * spread_scale,
-                self.imf.as_deref(),
-                true,
-                false,
-                -0.01,
-                1.0,
-            );
+            let wave = phase.to_radians().sin();
+
+            for (spread_pixels, color_alpha) in [(wave + 3.0, 0x64u8), (2.0 * wave + 5.0, 0x78u8)] {
+                let spread_scale = 1.0 + spread_pixels * 0.012;
+                animation_data.render(
+                    instructions,
+                    camera,
+                    add_to_picker,
+                    self.entity_id,
+                    body_position,
+                    &self.animation_state,
+                    self.direction,
+                    alpha * (color_alpha as f32 / 255.0),
+                    Color::rgb_u8(255, 255, 255),
+                    self.scale * spread_scale,
+                    self.imf.as_deref(),
+                    true,
+                    false,
+                    -0.01,
+                    1.0,
+                );
+            }
         }
 
         if let Some(animation_data) = self.animation_data.as_ref() {

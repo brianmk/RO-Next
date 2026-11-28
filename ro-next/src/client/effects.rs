@@ -141,11 +141,12 @@ fn secondary_ported_effect(skill_id: SkillId, phase: SkillPhase) -> Option<ragna
         return None;
     }
 
-    matches!(
-        skill_id.0,
-        445 | 447 | 448 | 449 | 450 | 451 | 452 | 453 | 454 | 455 | 456 | 457 | 458 | 460 | 461
-    )
-    .then_some(ragnarok_packets::EffectId::Asurabody)
+    // SL_* used to spawn `EF_ASURABODY` here. That body only sets the blue
+    // outlineAlpha silhouette, which reads as an outline rather than a tint.
+    // Soul Link now applies a blue sprite tint directly in
+    // `spawn_skill_effect_phase`; keep the outline lane disabled.
+    let _ = (skill_id, phase);
+    None
 }
 
 /// Official ground-field effect of a persistent skill unit.
@@ -581,6 +582,23 @@ impl Client {
             target_position,
             client_tick,
         );
+
+        // Soul Link's official secondary body is only a blue outline. Tint
+        // the target's sprite instead, so the character itself turns blue.
+        if matches!(
+            skill_id.0,
+            445 | 447 | 448 | 449 | 450 | 451 | 452 | 453 | 454 | 455 | 456 | 457 | 458 | 460 | 461
+        ) {
+            let target = target_entity_id.unwrap_or(source_entity_id);
+            if let Some(entity) = self
+                .client_state
+                .follow_mut(client_state().entities())
+                .iter_mut()
+                .find(|entity| entity.get_entity_id() == target)
+            {
+                entity.start_body_flash(Color::rgb_u8(55, 55, 255), 8000, 400, false, client_tick);
+            }
+        }
     }
 
     /// The local player's learned level of `skill_id`, when
@@ -1282,7 +1300,7 @@ mod tests {
             crate::port::skill_map::ported_anchor_for(SkillId(461), SkillPhase::Success),
             crate::port::skill_map::PortedAnchor::Target
         );
-        assert_eq!(secondary_ported_effect(SkillId(461), SkillPhase::Success), Some(EffectId::Asurabody));
+        assert_eq!(secondary_ported_effect(SkillId(461), SkillPhase::Success), None);
         assert_eq!(secondary_ported_effect(SkillId(461), SkillPhase::Hit), None);
     }
 
