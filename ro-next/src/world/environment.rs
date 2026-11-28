@@ -250,8 +250,8 @@ impl Environment {
 
     /// State for the procedural weather shader: `[kind, time, intensity,
     /// seed]`.
-    pub fn weather_shader_state(&self) -> [f32; 4] {
-        self.weather.shader_state(self.elapsed)
+    pub fn weather_shader_state(&self, zoom: f32) -> [f32; 4] {
+        self.weather.shader_state(self.elapsed, zoom)
     }
 
     fn render_sun(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, screen_size: ScreenSize) {

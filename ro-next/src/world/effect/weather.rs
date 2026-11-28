@@ -114,11 +114,11 @@ impl Weather {
     }
 
     /// `[kind, time, intensity, seed]` for the procedural weather shader.
-    pub fn shader_state(&self, time: f32) -> [f32; 4] {
+    pub fn shader_state(&self, time: f32, zoom: f32) -> [f32; 4] {
         let Some(kind) = self.kind.or(self.forced_kind) else {
             return [0.0; 4];
         };
-        [kind.shader_id() as f32, (time - self.started).max(0.0), 1.0, 0.0]
+        [kind.shader_id() as f32, (time - self.started).max(0.0), 1.0, zoom]
     }
 }
 

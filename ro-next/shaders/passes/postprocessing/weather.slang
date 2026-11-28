@@ -133,7 +133,10 @@ func particleLayer(
     let pitch_cos = max(abs(cos(spin_pitch)), 0.18);
     local = float2(local.x / yaw_cos, local.y / pitch_cos);
 
-    let scale = (0.55 + 0.35 * hash21(cell + float2(3.0, seed))) * (0.65 + depth * 0.65);
+    // Smaller base particles; zooming in makes them slightly larger because
+    // the screen-space shader does not inherit the camera projection's scale.
+    let zoom = clamp(global_uniforms.weather.w, 0.65, 1.6);
+    let scale = (0.34 + 0.22 * hash21(cell + float2(3.0, seed))) * (0.62 + depth * 0.55) * zoom;
     var distance = 0.0;
     if (shape == 0u) {
         distance = sakuraShape(local / scale);
