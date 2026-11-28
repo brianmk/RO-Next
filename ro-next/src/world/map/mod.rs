@@ -422,9 +422,17 @@ impl Map {
         camera: &dyn Camera,
         client_tick: ClientTick,
     ) {
-        entities
-            .iter()
-            .enumerate()
+        // Draw whole entities far-to-near. Each entity keeps its own part
+        // order (body, head, equipment), but a nearer character is submitted
+        // after a farther one so its sprites win the depth/WBOIT blend.
+        let mut order: Vec<_> = entities.iter().enumerate().collect();
+        order.sort_by(|(_, left), (_, right)| {
+            camera
+                .distance_to(right.get_position())
+                .total_cmp(&camera.distance_to(left.get_position()))
+        });
+        order
+            .into_iter()
             .for_each(|(index, entity)| entity.render(instructions, camera, index != 0, client_tick));
     }
 
