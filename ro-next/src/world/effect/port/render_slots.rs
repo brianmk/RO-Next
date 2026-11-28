@@ -410,7 +410,7 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         PrimitiveId::Cylinder3d => SlotRenderer::ArcBand,
         PrimitiveId::ParticleUp => SlotRenderer::FieldPanel,
         PrimitiveId::ShieldBoomerang | PrimitiveId::ThrowItem | PrimitiveId::ShieldBoomerang3 => SlotRenderer::FieldPanel,
-        PrimitiveId::QuadHorn3d => SlotRenderer::Pyramid,
+        PrimitiveId::QuadHorn3d | PrimitiveId::QuadHorn2 => SlotRenderer::Pyramid,
         PrimitiveId::HeightRamp => SlotRenderer::ArcWalls,
         PrimitiveId::RisingFan => SlotRenderer::FacingQuads,
         PrimitiveId::RisingFan2 => SlotRenderer::Ripple,
@@ -429,6 +429,7 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         PrimitiveId::PeongUp => SlotRenderer::PeongUp,
         PrimitiveId::Casting3d | PrimitiveId::WaveSpin => SlotRenderer::Casting,
         PrimitiveId::AcidDemon => SlotRenderer::Casting,
+        PrimitiveId::FrameFade => SlotRenderer::AuraGlow,
         PrimitiveId::AsuraCasting => SlotRenderer::HaloLayers,
         // Prim 147 (`TexturedSlam`) reuses `RenderHaloLayers`.
         PrimitiveId::TexturedSlam => SlotRenderer::HaloLayers,

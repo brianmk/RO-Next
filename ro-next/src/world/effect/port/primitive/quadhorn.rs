@@ -126,3 +126,47 @@ mod tests {
         assert!((state.speed - 7.5).abs() < EPSILON);
     }
 }
+
+/// One frame of `PP_3DQUADHORN2` - `EffectPrimitiveMotion.cpp:8189-8226`.
+///
+/// The Gravitation shards. Every six frames the speed alternates between the
+/// configured drift and the upward `1.18` burst; at frame 550 the motion
+/// settles back to the configured drift. The shape is the same pyramid as
+/// prim 9, so the renderer is shared.
+pub fn on_process2(state: &mut EffectPrimitiveState, master: &MasterState) {
+    state.org_pos = [
+        master.position[0] + state.delta_pos2[0],
+        master.position[1] + state.delta_pos2[1],
+        master.position[2] + state.delta_pos2[2],
+    ];
+
+    let frame = state.state_cnt;
+
+    if frame < 550 {
+        if frame % 6 == 2 {
+            state.speed = state.change_speed;
+            state.accel = state.change_accel;
+        } else if frame % 6 == 5 {
+            state.speed = 1.18;
+            state.accel = 0.01;
+        }
+    } else if frame == 550 {
+        state.speed = state.change_speed;
+        state.accel = state.change_accel;
+    }
+
+    state.speed += state.accel;
+    state.speed3d = super::super::math::forward(state.speed, &state.transform.values);
+    state.delta_pos = [
+        state.delta_pos[0] + state.speed3d[0],
+        state.delta_pos[1] + state.speed3d[1],
+        state.delta_pos[2] + state.speed3d[2],
+    ];
+    state.position = [
+        state.org_pos[0] + state.delta_pos[0],
+        state.org_pos[1] + state.delta_pos[1],
+        state.org_pos[2] + state.delta_pos[2],
+    ];
+
+    state.process_alpha(master);
+}

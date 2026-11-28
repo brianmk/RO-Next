@@ -234,16 +234,83 @@ impl PortedEffect for SuiExplosion {
 #[derive(Debug, Default)]
 pub struct TetraGround;
 
+/// `CRagEffect::TetraVortexPillar(4)` - `RagEffect.cpp:8335-8430`.
+fn tetra_vortex_pillar(runtime: &mut EffectRuntime) {
+    runtime.copy_parent_position();
+
+    let frame = runtime.frame;
+
+    if frame < 100 && frame % 20 == 0 {
+        match frame {
+            0 => {
+                runtime.play_sound("effect\\wizard_meteo.wav");
+                runtime.play_sound("effect\\hunter_blastmine.wav");
+            }
+            10 | 20 | 50 | 80 => runtime.play_sound("effect\\wl_tetravortex.wav"),
+            _ => {}
+        }
+    }
+
+    if frame > 80 || frame % 25 != 0 {
+        return;
+    }
+
+    let lifetime = runtime.lifetime;
+    let position = EffectRuntime::official_position(runtime.position);
+    let target = EffectRuntime::official_position(runtime.target_offset);
+    let rot_start = runtime.rng.clamped_random(360) as i16;
+
+    let index = runtime.launch(PrimitiveId::FrameFade, [0.0, 0.0, 0.0]);
+    let state = runtime.primitive_mut(index);
+
+    state.render_flag = 1 | 4;
+    state.duration = lifetime;
+    state.total_texture = 8;
+    state.texture = Some("effect\\tv-1.bmp");
+    state.texture_frames = vec![
+        "effect\\tv-1.bmp",
+        "effect\\tv-2.bmp",
+        "effect\\tv-3.bmp",
+        "effect\\tv-4.bmp",
+        "effect\\tv-5.bmp",
+        "effect\\tv-6.bmp",
+        "effect\\tv-7.bmp",
+        "effect\\tv-8.bmp",
+    ];
+    state.size = 0.0;
+
+    for slot in &mut state.slots {
+        slot.life = 0;
+    }
+
+    let slot = &mut state.slots[0];
+    slot.life = 1;
+    slot.process = 0;
+    slot.distance = 30.0;
+    slot.vec_b_pre[1] = position[1] - 10.0;
+    slot.flag1[2] = 19;
+    slot.full_display_angle = 120;
+    slot.height[8] = 0.0;
+    slot.height[10] = 1.0;
+    slot.alpha_b = 200;
+    slot.vec_b_now[0] = target[0];
+    slot.vec_b_now[2] = target[2];
+    slot.vec_b_now[1] = target[1] - 35.0;
+    slot.rot_start = rot_start;
+    slot.flag1[0] = 0;
+}
+
 impl PortedEffect for TetraGround {
     fn lifetime(&self) -> i32 {
         600
     }
 
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
-        if runtime.frame == 0 {
-            ring(runtime, "effect\\magic_green.tga");
+        if matches!(runtime.frame, 0 | 40 | 80) {
             runtime.quake();
         }
+
+        tetra_vortex_pillar(runtime);
 
         true
     }
@@ -259,9 +326,53 @@ impl PortedEffect for Gravitation {
     }
 
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
-        if runtime.frame == 0 {
-            ring(runtime, "effect\\ring_black.tga");
-            runtime.quake();
+        if runtime.frame != 0 {
+            return true;
+        }
+
+        runtime.quake();
+
+        let angles = super::super::angles::Angles::shared();
+        let origin = EffectRuntime::official_position(runtime.position);
+
+        for z in (-10..15).step_by(5) {
+            for x in (-10..15).step_by(5) {
+                for i in 0..4usize {
+                    let index = runtime.launch(PrimitiveId::QuadHorn2, [0.0, 0.0, 0.0]);
+
+                    let angle = runtime.rng.clamped_random(360);
+                    runtime.rng.discard();
+                    let _ = angles.sine(angle);
+                    let _ = angles.cosine(angle);
+
+                    let size = (runtime.rng.clamped_random(50) + 300) as f32 / 100.0;
+                    let longitude = runtime.rng.clamped_random(360) as f32;
+                    let latitude = (runtime.rng.clamped_random(40) + 60) as f32;
+
+                    let state = runtime.primitive_mut(index);
+
+                    state.pattern = 1;
+                    state.delta_pos2 = [x as f32, 10.0, z as f32];
+                    state.duration = 250;
+                    state.size = size;
+                    state.height_size = 18.0;
+                    state.longitude = longitude;
+                    state.latitude = latitude;
+                    state.transform.make_x_rotation(angles.radian(latitude as i32));
+                    state.transform.append_y_rotation(angles.radian(longitude as i32));
+                    state.rot_transform = state.transform;
+                    state.speed = 1.0;
+                    state.accel = 0.01;
+                    state.alpha = 20.0;
+                    state.ch_cnt = 15;
+                    state.change_point = 12;
+                    state.change_speed = -1.2;
+                    state.change_accel = 0.0;
+                    state.fade_out_cnt = state.duration - 10;
+                    state.texture = Some(if i < 2 { "effect\\stone.bmp" } else { "effect\\ice.tga" });
+                    state.position = origin;
+                }
+            }
         }
 
         true

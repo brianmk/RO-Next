@@ -29,6 +29,7 @@ pub mod expand_pulse;
 pub mod first_aid;
 pub mod flash;
 pub mod flash_fade;
+pub mod frame_fade;
 pub mod floating_bubbles;
 pub mod forest_light;
 pub mod gi3;
@@ -192,6 +193,8 @@ pub enum PrimitiveId {
     Sphere3d,
     /// `PP_3DQUADHORN` (9)
     QuadHorn3d,
+    /// `PP_3DQUADHORN2` (117) - the Gravitation shard stream.
+    QuadHorn2,
     /// `PP_3DTEXTURE` (1)
     Texture3d,
     /// `PP_3DCROSSTEXTURE` (16)
@@ -286,6 +289,8 @@ pub enum PrimitiveId {
     BottomOut,
     /// `PP_ACIDDEMON` (118) - `PrimAcidDemon`'s four column fans.
     AcidDemon,
+    /// prim 140 - `PrimFrameFade`'s scrolling pillar (`EF_TETRA*`).
+    FrameFade,
     /// `PP_ASURACASTING` (68) - `PrimAsuraCasting`'s blade columns
     /// (`CRagEffect::AsuraStrike`) and the skill-icon flash
     /// (`CRagEffect::TexturedSkillIcon`). Drawn by `RenderHaloLayers`.
@@ -501,6 +506,7 @@ impl PrimitiveId {
             Self::Circle3d => 12,
             Self::Sphere3d => 14,
             Self::QuadHorn3d => 9,
+            Self::QuadHorn2 => 117,
             Self::Texture3d => 15,
             Self::CrossTexture3d => 16,
             Self::Cylinder3d => 13,
@@ -539,6 +545,7 @@ impl PrimitiveId {
             Self::Bottom => 47,
             Self::BottomOut => 49,
             Self::AcidDemon => 118,
+            Self::FrameFade => 140,
             Self::AsuraCasting => 68,
             Self::Casting3d => 30,
             Self::WaveSpin => 31,
@@ -1041,6 +1048,10 @@ impl EffectPrimitiveState {
                 quadhorn::on_process(self, angles, master);
                 true
             }
+            PrimitiveId::QuadHorn2 => {
+                quadhorn::on_process2(self, master);
+                true
+            }
             PrimitiveId::Texture3d | PrimitiveId::CrossTexture3d => texture3d::on_process(self, angles, master, rng),
             PrimitiveId::Cylinder3d => {
                 cylinder::on_process(self, angles, master);
@@ -1170,6 +1181,10 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::AcidDemon => {
                 acid_demon::on_process(self, angles, master, rng);
+                true
+            }
+            PrimitiveId::FrameFade => {
+                frame_fade::on_process(self, master);
                 true
             }
             PrimitiveId::AsuraCasting => {
