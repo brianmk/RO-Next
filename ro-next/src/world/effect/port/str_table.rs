@@ -630,6 +630,22 @@ pub fn str_resource(effect: EffectId) -> Option<&'static StrResource> {
     })
 }
 
+/// The three Meteor Storm resources (`RagEffectInitialization.cpp:105-107`).
+static METEOR_FILES: [[&str; 1]; 3] = [["Meteor1.str"], ["Meteor2.str"], ["Meteor3.str"]];
+
+/// Files the holder should open for a given effect and effect seed.
+///
+/// Most effects have one fixed resource; Meteor Storm is the one effect whose
+/// official `Init` picks `Meteor1..3.str` with `rand() % 3`. The port uses the
+/// effect's deterministic seed so the choice is stable for one cast and testable.
+pub fn files_for_seed(effect: EffectId, seed: u64) -> Option<&'static [&'static str]> {
+    if matches!(effect, EffectId::Meteorstorm) {
+        return Some(&METEOR_FILES[seed as usize % METEOR_FILES.len()]);
+    }
+
+    str_resource(effect).map(|resource| resource.files)
+}
+
 /// Shorthand for [`StrResource::files`].
 pub fn str_clips_for(effect: EffectId) -> Option<&'static [&'static str]> {
     str_resource(effect).map(|resource| resource.files)

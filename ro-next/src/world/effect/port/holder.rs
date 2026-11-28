@@ -38,6 +38,9 @@ pub struct PortedEffectHolder {
     /// itself is opened before the first step by [`Self::with_str_clips`] or
     /// [`Self::with_game_file_loader`].
     str_resource: Option<&'static StrResource>,
+    /// The exact `.str` files selected for this cast (Meteor Storm picks one
+    /// of three from its seed; every other effect uses `str_resource.files`).
+    str_files: Option<&'static [&'static str]>,
     /// `EZeffectClip::names` per `.str` clip, already resolved to the client
     /// loader's `effect\...` paths (`str_table::ClipSet::textures`). Empty
     /// until a resource is opened; the playback player does not need it, only
@@ -74,6 +77,7 @@ impl PortedEffectHolder {
         let body = registry::spawn(effect)?;
         let mut holder = Self::with_body(body, seed);
         holder.str_resource = str_table::str_resource(effect);
+        holder.str_files = str_table::files_for_seed(effect, seed);
 
         Some(holder)
     }
@@ -90,6 +94,7 @@ impl PortedEffectHolder {
             accumulator_ms: 0.0,
             finished: false,
             str_resource: None,
+            str_files: None,
             str_textures: Vec::new(),
             sprite_loader: None,
             action_loader: None,
@@ -102,7 +107,8 @@ impl PortedEffectHolder {
     /// Official `.str` files the effect opens at spawn (`CRagEffect::Init`),
     /// if any. Names are relative to `data\texture\effect\`.
     pub fn str_files(&self) -> Option<&'static [&'static str]> {
-        self.str_resource.map(|resource| resource.files)
+        self.str_files
+            .or_else(|| self.str_resource.map(|resource| resource.files))
     }
 
     /// Opens the effect's `.str` resource from already-parsed clips.
@@ -145,9 +151,10 @@ impl PortedEffectHolder {
             return self;
         };
 
-        match str_table::load_clips(game_file_loader, resource) {
+        let files = self.str_files.unwrap_or(resource.files);
+        match files.iter().find_map(|file| str_table::load_clip_file(game_file_loader, file)) {
             Some(clip_set) => self.open_str(resource, clip_set),
-            None => crate::logging::log_debug!("ported effect: missing .str resource {:?}", resource.files),
+            None => crate::logging::log_debug!("ported effect: missing .str resource {:?}", files),
         }
 
         self
