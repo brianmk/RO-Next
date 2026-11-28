@@ -243,10 +243,10 @@ fn tetra_vortex_pillar(runtime: &mut EffectRuntime) {
     if frame < 100 && frame % 20 == 0 {
         match frame {
             0 => {
-                runtime.play_sound("effect\\wizard_meteo.wav");
+                runtime.play_sound_at_height("effect\\wizard_meteo.wav", 0.0);
                 runtime.play_sound("effect\\hunter_blastmine.wav");
             }
-            10 | 20 | 50 | 80 => runtime.play_sound("effect\\wl_tetravortex.wav"),
+            10 | 20 | 50 | 80 => runtime.play_sound_at_height("effect\\wl_tetravortex.wav", 0.0),
             _ => {}
         }
     }
@@ -311,6 +311,14 @@ impl PortedEffect for TetraGround {
         }
 
         tetra_vortex_pillar(runtime);
+
+        if runtime.frame == 0 {
+            // `for (int index = 0; index < 7; ++index)
+            //  this->TexturedSpread("effect\ring_red.tga", 10);`
+            for _ in 0..7 {
+                super::spread_flat::spawn_one(runtime, "effect\\ring_red.tga", 10);
+            }
+        }
 
         true
     }
