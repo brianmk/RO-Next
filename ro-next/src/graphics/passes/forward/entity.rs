@@ -327,6 +327,11 @@ impl Prepare for ForwardEntityDrawer {
             for position in 0..self.order.len() {
                 let instruction = &instructions.entities[self.order[position] as usize];
 
+                // The non-bindless shader samples one texture through bind
+                // group 3, so keep the per-instance texture in the same order
+                // as `instance_data`.
+                self.ordered_textures.push(instruction.texture.clone());
+
                 self.instance_data.push(InstanceData {
                     world: instruction.world.into(),
                     frame_part_transform: instruction.frame_part_transform.into(),
