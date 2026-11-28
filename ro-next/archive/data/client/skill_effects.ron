@@ -2253,7 +2253,7 @@
             skill: 445,
             phase: Success,
             layers: [
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 10.2, duration_ms: 8333, alpha: 0.25, blend: Alpha, tint: (0.28, 0.28, 1.0)),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_l.tga", "effect\\soul_u.tga", "effect\\soul_o.tga", "effect\\soul_s.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_k.tga", "effect\\soul_n.tga", "effect\\soul_i.tga", "effect\\soul_l.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
             ],
@@ -2279,7 +2279,7 @@
             skill: 447,
             phase: Success,
             layers: [
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 10.2, duration_ms: 8333, alpha: 0.25, blend: Alpha, tint: (0.28, 0.28, 1.0)),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_l.tga", "effect\\soul_u.tga", "effect\\soul_o.tga", "effect\\soul_s.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_k.tga", "effect\\soul_n.tga", "effect\\soul_i.tga", "effect\\soul_l.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
             ],
@@ -2288,7 +2288,7 @@
             skill: 448,
             phase: Success,
             layers: [
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 10.2, duration_ms: 8333, alpha: 0.25, blend: Alpha, tint: (0.28, 0.28, 1.0)),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_l.tga", "effect\\soul_u.tga", "effect\\soul_o.tga", "effect\\soul_s.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_k.tga", "effect\\soul_n.tga", "effect\\soul_i.tga", "effect\\soul_l.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
             ],
@@ -2297,7 +2297,7 @@
             skill: 449,
             phase: Success,
             layers: [
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 10.2, duration_ms: 8333, alpha: 0.25, blend: Alpha, tint: (0.28, 0.28, 1.0)),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_l.tga", "effect\\soul_u.tga", "effect\\soul_o.tga", "effect\\soul_s.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_k.tga", "effect\\soul_n.tga", "effect\\soul_i.tga", "effect\\soul_l.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
             ],
@@ -2306,7 +2306,7 @@
             skill: 450,
             phase: Success,
             layers: [
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 10.2, duration_ms: 8333, alpha: 0.25, blend: Alpha, tint: (0.28, 0.28, 1.0)),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_l.tga", "effect\\soul_u.tga", "effect\\soul_o.tga", "effect\\soul_s.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_k.tga", "effect\\soul_n.tga", "effect\\soul_i.tga", "effect\\soul_l.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
             ],
@@ -2315,7 +2315,7 @@
             skill: 451,
             phase: Success,
             layers: [
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 10.2, duration_ms: 8333, alpha: 0.25, blend: Alpha, tint: (0.28, 0.28, 1.0)),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_l.tga", "effect\\soul_u.tga", "effect\\soul_o.tga", "effect\\soul_s.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_k.tga", "effect\\soul_n.tga", "effect\\soul_i.tga", "effect\\soul_l.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
             ],
@@ -2324,7 +2324,7 @@
             skill: 452,
             phase: Success,
             layers: [
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 10.2, duration_ms: 8333, alpha: 0.25, blend: Alpha, tint: (0.28, 0.28, 1.0)),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_l.tga", "effect\\soul_u.tga", "effect\\soul_o.tga", "effect\\soul_s.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_k.tga", "effect\\soul_n.tga", "effect\\soul_i.tga", "effect\\soul_l.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
             ],
@@ -2333,7 +2333,7 @@
             skill: 453,
             phase: Success,
             layers: [
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 10.2, duration_ms: 8333, alpha: 0.25, blend: Alpha, tint: (0.28, 0.28, 1.0)),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_l.tga", "effect\\soul_u.tga", "effect\\soul_o.tga", "effect\\soul_s.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_k.tga", "effect\\soul_n.tga", "effect\\soul_i.tga", "effect\\soul_l.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
             ],
@@ -2342,7 +2342,7 @@
             skill: 454,
             phase: Success,
             layers: [
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 10.2, duration_ms: 8333, alpha: 0.25, blend: Alpha, tint: (0.28, 0.28, 1.0)),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_l.tga", "effect\\soul_u.tga", "effect\\soul_o.tga", "effect\\soul_s.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_k.tga", "effect\\soul_n.tga", "effect\\soul_i.tga", "effect\\soul_l.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
             ],
@@ -2351,7 +2351,7 @@
             skill: 455,
             phase: Success,
             layers: [
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 10.2, duration_ms: 8333, alpha: 0.25, blend: Alpha, tint: (0.28, 0.28, 1.0)),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_l.tga", "effect\\soul_u.tga", "effect\\soul_o.tga", "effect\\soul_s.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_k.tga", "effect\\soul_n.tga", "effect\\soul_i.tga", "effect\\soul_l.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
             ],
@@ -2360,7 +2360,7 @@
             skill: 456,
             phase: Success,
             layers: [
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 10.2, duration_ms: 8333, alpha: 0.25, blend: Alpha, tint: (0.28, 0.28, 1.0)),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_l.tga", "effect\\soul_u.tga", "effect\\soul_o.tga", "effect\\soul_s.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_k.tga", "effect\\soul_n.tga", "effect\\soul_i.tga", "effect\\soul_l.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
             ],
@@ -2371,7 +2371,7 @@
             layers: [
                 (kind: Str, anchor: Auto, attached_entity: false, file: "assasin_poisonreact.str"),
                 (kind: Str, anchor: Auto, attached_entity: false, file: "assasin_poisonreact_1st.str"),
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 10.2, duration_ms: 8333, alpha: 0.25, blend: Alpha, tint: (0.28, 0.28, 1.0)),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_l.tga", "effect\\soul_u.tga", "effect\\soul_o.tga", "effect\\soul_s.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_k.tga", "effect\\soul_n.tga", "effect\\soul_i.tga", "effect\\soul_l.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
             ],
@@ -2380,7 +2380,7 @@
             skill: 458,
             phase: Success,
             layers: [
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 10.2, duration_ms: 8333, alpha: 0.25, blend: Alpha, tint: (0.28, 0.28, 1.0)),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_l.tga", "effect\\soul_u.tga", "effect\\soul_o.tga", "effect\\soul_s.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_k.tga", "effect\\soul_n.tga", "effect\\soul_i.tga", "effect\\soul_l.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
             ],
@@ -2401,7 +2401,7 @@
                 (kind: Str, anchor: Auto, attached_entity: false, file: "hunter_loud.str"),
                 (kind: Str, anchor: Auto, attached_entity: false, file: "hunter_poison.str"),
                 (kind: Str, anchor: Auto, attached_entity: false, file: "hunter_shockwave_blue.str"),
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 10.2, duration_ms: 8333, alpha: 0.25, blend: Alpha, tint: (0.28, 0.28, 1.0)),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_l.tga", "effect\\soul_u.tga", "effect\\soul_o.tga", "effect\\soul_s.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_k.tga", "effect\\soul_n.tga", "effect\\soul_i.tga", "effect\\soul_l.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
             ],
@@ -2410,7 +2410,7 @@
             skill: 461,
             phase: Success,
             layers: [
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 10.2, duration_ms: 8333, alpha: 0.25, blend: Alpha, tint: (0.28, 0.28, 1.0)),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_l.tga", "effect\\soul_u.tga", "effect\\soul_o.tga", "effect\\soul_s.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_k.tga", "effect\\soul_n.tga", "effect\\soul_i.tga", "effect\\soul_l.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
             ],
@@ -2590,7 +2590,7 @@
             skill: 494,
             phase: Success,
             layers: [
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 10.2, duration_ms: 8333, alpha: 0.25, blend: Alpha, tint: (0.28, 0.28, 1.0)),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_l.tga", "effect\\soul_u.tga", "effect\\soul_o.tga", "effect\\soul_s.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
                 (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\soul_k.tga", "effect\\soul_n.tga", "effect\\soul_i.tga", "effect\\soul_l.tga"], frame_ms: 500, size: 6.8, duration_ms: 2000, alpha: 0.2, blend: Additive),
             ],
