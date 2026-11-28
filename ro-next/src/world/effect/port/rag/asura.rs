@@ -366,6 +366,50 @@ fn super_slash_spread(runtime: &mut EffectRuntime, count: i8, value: i8) {
     }
 }
 
+/// `CVolcanoEffect`'s ground shockwave for `EF_GUMGANG2` - the segmented
+/// `ring_yellow.tga` wave that the official client draws in addition to
+/// `TexturedCrossLevel`.
+///
+/// The original builds 4 rows x 22 radial segments as `CParticle` quads
+/// (`ThrowEffects.cpp:619-714`). RO-Next has no generic particle renderer for
+/// that effect, so the same 360-degree wave is assembled from the ported
+/// `PP_CHEMICALPROTECTION` wedge primitive: nine primitives with four slots
+/// each reproduce the 36 ten-degree segments. The chemical motion provides the
+/// 20-frame fade-in and the 20-frame fade-out; the texture is the same
+/// `ring_yellow.tga` the official wave uses.
+fn fury_shockwaves(runtime: &mut EffectRuntime) {
+    if runtime.frame != 0 {
+        return;
+    }
+
+    // `MM_QUAKE` is sent by every official `EF_GUMGANG2` dispatch
+    // (`MO_EXPLOSIONSPIRITS`, `MO_STEELBODY`, `SL_SKA`).
+    runtime.quake();
+
+    let lifetime = runtime.lifetime;
+
+    for group in 0..9usize {
+        let index = runtime.launch(PrimitiveId::ChemicalProtection, [0.0, 0.0, 0.0]);
+        let state = runtime.primitive_mut(index);
+
+        state.render_flag = 1 | 4;
+        state.duration = lifetime;
+        state.total_texture = 1;
+        state.texture = Some("effect\\ring_yellow.tga");
+        state.size = 0.0;
+
+        for slot_index in 0..4usize {
+            let slot = &mut state.slots[slot_index];
+
+            slot.life = 1;
+            slot.process = 0;
+            slot.distance = 35.0;
+            slot.rise_angle = ((group * 4 + slot_index) * 10) as i16;
+            slot.alpha_b = 0;
+        }
+    }
+}
+
 /// `CRagEffect::TexturedCrossLevel` - `RagEffect.cpp:5246-5292`.
 ///
 /// Arms one prim 31 (`PrimWaveSpin`) with four rings at `distance` 1..4,
@@ -762,6 +806,7 @@ impl PortedEffect for Gumgang2 {
 
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
         textured_cross_level(runtime, "effect\\ring_yellow.tga", 0);
+        fury_shockwaves(runtime);
 
         true
     }
@@ -1320,6 +1365,23 @@ mod tests {
         assert_eq!(primitive.slots[3].distance, 4.1);
         assert_eq!(primitive.slots[3].rise_angle, 79);
         assert_eq!(primitive.slots[0].alpha_t, 0);
+    }
+
+    #[test]
+    fn gumgang2_adds_the_ground_shockwave_and_shakes_the_screen() {
+        let mut body = Gumgang2;
+        let mut runtime = runtime(&body, 9);
+
+        step(&mut body, &mut runtime);
+
+        assert_eq!(runtime.shakes, 1);
+        assert_eq!(runtime.primitives.len(), 10, "one wave-spin + nine shockwave groups");
+        let wave = &runtime.primitives[1].state;
+        assert_eq!(wave.count, PrimitiveId::ChemicalProtection);
+        assert_eq!(wave.texture, Some("effect\\ring_yellow.tga"));
+        assert_eq!(wave.slots[0].rise_angle, 0);
+        assert_eq!(wave.slots[3].rise_angle, 30);
+        assert_eq!(runtime.primitives[9].state.slots[3].rise_angle, 350);
     }
 
     #[test]
