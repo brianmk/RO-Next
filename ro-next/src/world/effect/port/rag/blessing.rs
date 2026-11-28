@@ -61,6 +61,11 @@ impl PortedEffect for Blessing {
             state.anim_speed = 2;
             state.alpha = (frame as f32 * -6.0) + 200.0;
             state.delta_pos2 = [0.0, -25.0, 0.0];
+            // `SetSpriteName("이팩트\축복.spr")` /
+            // `SetActionName("이팩트\축복.act")` (`RagEffect.cpp:1690-1691`);
+            // without these the PP_3DPARTICLE has no sprite and draws nothing.
+            state.sprite = Some("이팩트\\축복.spr");
+            state.action = Some("이팩트\\축복.act");
             state.init_segment();
         }
 
@@ -125,6 +130,8 @@ mod tests {
         assert_eq!(particle.anim_speed, 2);
         assert_eq!(particle.alpha, 200.0);
         assert_eq!(particle.delta_pos2, [0.0, -25.0, 0.0]);
+        assert_eq!(particle.sprite, Some("이팩트\\축복.spr"));
+        assert_eq!(particle.action, Some("이팩트\\축복.act"));
 
         let mote = &runtime.primitives[2].state;
         assert_eq!(mote.count, PrimitiveId::Particle3d);

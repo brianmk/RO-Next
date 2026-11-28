@@ -1608,7 +1608,14 @@ impl Client {
 
         let use_sdsm = sdsm_enabled & !self.player_camera.is_rotating_or_zooming_fast();
 
-        let (directional_light_direction, directional_light_color) = map.directional_light();
+        self.environment.update(
+            delta_time as f32,
+            self.current_map_name.as_deref(),
+            !crate::state::is_indoor_map_type(*self.client_state.follow(client_state().map_type())),
+        );
+        let environment_sample = self.environment.sample(&map);
+        let directional_light_direction = environment_sample.directional_light_direction;
+        let directional_light_color = environment_sample.directional_light_color;
 
         match use_sdsm {
             true => {
@@ -2017,7 +2024,7 @@ impl Client {
                 head_marks: &self.head_marks,
                 cast_bars: &self.cast_bars,
                 skill_name_texts: &self.skill_name_texts,
-                weather: self.weather.as_ref(),
+                environment: &self.environment,
                 spirit_sphere_texture: self.spirit_sphere_texture.as_ref(),
                 effect_renderer: &mut self.effect_renderer,
                 bottom_interface_renderer: &self.bottom_interface_renderer,
@@ -2076,15 +2083,20 @@ impl Client {
         // data keep the black background, so existing maps render exactly as
         // before. `BG_Fog` fades the geometry into the same colour (it is not
         // enabled by this data set, the guarded path stays nevertheless).
-        let background_color = map.sky_background_color().unwrap_or(Color::BLACK);
-        let scene_fog = map.scene_fog();
+        let background_color = environment_sample.background_color;
+        let scene_fog = environment_sample.scene_fog;
+
+        let stylized_lighting = *self.client_state.follow(client_state().game_settings().stylized_lighting());
 
         let uniforms = Uniforms {
             view_matrix,
             projection_matrix,
             camera_position,
             animation_timer_ms,
-            ambient_light_color: map.ambient_light_color(),
+            ambient_light_color: environment_sample.ambient_light_color,
+            stylized_lighting,
+            moon_fill: environment_sample.moon_fill,
+            weather: self.environment.weather_shader_state(self.player_camera.zoom_scale()),
             fog_color: scene_fog.map(|fog| Color { alpha: 1.0, ..fog.color }).unwrap_or(Color::TRANSPARENT),
             fog_range: scene_fog.map(|fog| [fog.near, fog.far]).unwrap_or([0.0, 0.0]),
             enhanced_lighting: lighting_mode == LightingMode::Enhanced,

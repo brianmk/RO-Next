@@ -109,6 +109,7 @@ struct EngineContext {
     reduce_bounds_dispatcher: ReduceBoundsDispatcher,
     compute_custom_partitions_dispatcher: ComputeCustomPartitionsDispatcher,
     post_processing_fxaa_drawer: PostProcessingFxaaDrawer,
+    post_processing_weather_drawer: PostProcessingWeatherDrawer,
     post_processing_smaa_edge_drawer: PostProcessingSmaaEdgeDrawer,
     post_processing_smaa_blend_weights_drawer: PostProcessingSmaaBlendWeightsDrawer,
     post_processing_smaa_blend_drawer: PostProcessingSmaaBlendDrawer,
@@ -402,6 +403,7 @@ impl GraphicsEngine {
                         );
                         let PostProcessingResources {
                             post_processing_fxaa_drawer,
+                            post_processing_weather_drawer,
                             post_processing_smaa_edge_drawer,
                             post_processing_smaa_blend_weights_drawer,
                             post_processing_smaa_blend_drawer,
@@ -477,6 +479,7 @@ impl GraphicsEngine {
                         reduce_bounds_dispatcher,
                         compute_custom_partitions_dispatcher,
                         post_processing_fxaa_drawer,
+                        post_processing_weather_drawer,
                         post_processing_smaa_edge_drawer,
                         post_processing_smaa_blend_weights_drawer,
                         post_processing_smaa_blend_drawer,
@@ -629,6 +632,7 @@ impl GraphicsEngine {
 
             let PostProcessingResources {
                 post_processing_fxaa_drawer,
+                post_processing_weather_drawer,
                 post_processing_smaa_edge_drawer,
                 post_processing_smaa_blend_weights_drawer,
                 post_processing_smaa_blend_drawer,
@@ -657,6 +661,7 @@ impl GraphicsEngine {
             engine_context.forward_model_drawer = forward_model_drawer;
             engine_context.forward_effect_drawer = forward_effect_drawer;
             engine_context.post_processing_fxaa_drawer = post_processing_fxaa_drawer;
+            engine_context.post_processing_weather_drawer = post_processing_weather_drawer;
             engine_context.post_processing_smaa_edge_drawer = post_processing_smaa_edge_drawer;
             engine_context.post_processing_smaa_blend_weights_drawer = post_processing_smaa_blend_weights_drawer;
             engine_context.post_processing_smaa_blend_drawer = post_processing_smaa_blend_drawer;
@@ -1376,6 +1381,18 @@ impl GraphicsEngine {
                         .draw(&mut render_pass, blitter_data);
                 }
 
+                // Procedural weather belongs to the scene: draw it before
+                // anti-aliasing and before the interface so UI stays on top.
+                {
+                    let mut render_pass = engine_context.post_processing_pass_context.create_pass(
+                        &mut post_processing_encoder,
+                        &engine_context.global_context,
+                        engine_context.global_context.get_forward_texture(),
+                    );
+
+                    engine_context.post_processing_weather_drawer.draw(&mut render_pass, ());
+                }
+
                 let render_pass = match engine_context.global_context.supersampled_color_texture.as_ref() {
                     Some(supersampled_color_texture) => {
                         let mut render_pass = engine_context.post_processing_pass_context.create_pass(
@@ -1660,6 +1677,7 @@ impl ForwardResources {
 
 struct PostProcessingResources {
     post_processing_fxaa_drawer: PostProcessingFxaaDrawer,
+    post_processing_weather_drawer: PostProcessingWeatherDrawer,
     post_processing_smaa_edge_drawer: PostProcessingSmaaEdgeDrawer,
     post_processing_smaa_blend_weights_drawer: PostProcessingSmaaBlendWeightsDrawer,
     post_processing_smaa_blend_drawer: PostProcessingSmaaBlendDrawer,
@@ -1686,6 +1704,14 @@ impl PostProcessingResources {
         post_processing_pass_context: &PostProcessingRenderPassContext,
     ) -> Self {
         let post_processing_fxaa_drawer = PostProcessingFxaaDrawer::new(
+            capabilities,
+            device,
+            queue,
+            shader_compiler,
+            global_context,
+            post_processing_pass_context,
+        );
+        let post_processing_weather_drawer = PostProcessingWeatherDrawer::new(
             capabilities,
             device,
             queue,
@@ -1780,6 +1806,7 @@ impl PostProcessingResources {
 
         Self {
             post_processing_fxaa_drawer,
+            post_processing_weather_drawer,
             post_processing_smaa_edge_drawer,
             post_processing_smaa_blend_weights_drawer,
             post_processing_smaa_blend_drawer,

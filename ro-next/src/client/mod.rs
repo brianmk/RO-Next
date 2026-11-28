@@ -683,8 +683,9 @@ pub struct Client {
     /// ticks. Server table values; paces follow-up skill/item actions only.
     pub(crate) aftercast_act_until: Option<ClientTick>,
     pub(crate) warp_portal: Option<WarpPortal>,
-    /// Active map weather (`ZC_NOTIFY_EFFECT2` snow/fog/cloud/...).
-    pub(crate) weather: Option<crate::world::Weather>,
+    /// Client-side day/night cycle and random Prontera weather, plus the
+    /// server's `ZC_NOTIFY_EFFECT2` weather.
+    pub(crate) environment: crate::world::Environment,
     /// Classic spirit-sphere texture (`effect\thunder_center.bmp`), drawn as
     /// orbiting blue-white balls around entities with active spirit spheres.
     pub(crate) spirit_sphere_texture: Option<Arc<Texture>>,

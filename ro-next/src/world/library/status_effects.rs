@@ -911,16 +911,17 @@ mod tests {
     }
 
     #[test]
-    fn assumptio_and_the_documented_buff_auras_are_looked_up() {
+    fn assumptio_uses_the_render_flag_and_documented_auras_are_looked_up() {
+        // Assumptio is `render.flags & 8` (pulse outline), not a data aura.
         for status_id in [110_u16, 473] {
-            let aura = status_aura_spec(status_id).unwrap_or_else(|| panic!("status {status_id} lost its Assumptio aura"));
-            assert_eq!(aura.kind, StatusAuraKind::PersistentGlow);
-            assert_eq!(aura.ground_texture, "effect\\whitelight.tga");
+            assert!(status_aura_spec(status_id).is_none(), "status {status_id} must not have a procedural aura");
         }
-        // Party/cash Assumptio uses an identical spec row.
-        assert_eq!(status_aura_spec(110), status_aura_spec(473));
 
-        // Only Assumptio keeps a persistent glow; the other buffs must not.
+        // The documented buff auras remain data rows.
+        let aura = status_aura_spec(86).expect("Fury aura must exist");
+        assert_eq!(aura.kind, StatusAuraKind::PersistentGlow);
+        assert_eq!(aura.ground_texture, "effect\\whitelight.tga");
+
         for status_id in [10_u16, 12, 9, 3] {
             assert!(status_aura_spec(status_id).is_none(), "status {status_id} must not glow");
         }

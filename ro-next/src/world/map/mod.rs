@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use std::mem::size_of;
 use std::sync::{Arc, Mutex};
 
-use cgmath::{Deg, Matrix4, Point3, SquareMatrix, Vector3};
+use cgmath::{Deg, InnerSpace, Matrix4, Point3, SquareMatrix, Vector3};
 #[cfg(feature = "debug")]
 use option_ext::OptionExt;
 #[cfg(feature = "debug")]
@@ -422,9 +422,34 @@ impl Map {
         camera: &dyn Camera,
         client_tick: ClientTick,
     ) {
-        entities
-            .iter()
-            .enumerate()
+        // Draw whole entities far-to-near. Each entity keeps its own part
+        // order (body, head, equipment), but a nearer character is submitted
+        // after a farther one so its sprites win the depth/WBOIT blend.
+        //
+        // Sort by the projected screen height of the feet. This is the same
+        // visual front/back cue a 2.5D isometric sprite uses, and unlike raw
+        // world distance it stays correct while the camera rotates around the
+        // player. View-space depth is the tie breaker.
+        let view_projection = camera.view_projection_matrix();
+        let camera_position = camera.camera_position();
+        let view_direction = camera.view_direction();
+        let screen_y = |entity: &Entity| {
+            let clip = view_projection * entity.get_position().to_homogeneous();
+
+            match clip.w.abs() > f32::EPSILON {
+                true => clip.y / clip.w,
+                false => 0.0,
+            }
+        };
+        let view_depth = |entity: &Entity| (entity.get_position() - camera_position).dot(view_direction);
+        let mut order: Vec<_> = entities.iter().enumerate().collect();
+        order.sort_by(|(_, left), (_, right)| {
+            screen_y(right)
+                .total_cmp(&screen_y(left))
+                .then_with(|| view_depth(right).total_cmp(&view_depth(left)))
+        });
+        order
+            .into_iter()
             .for_each(|(index, entity)| entity.render(instructions, camera, index != 0, client_tick));
     }
 

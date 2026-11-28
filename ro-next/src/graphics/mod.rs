@@ -104,11 +104,18 @@ pub(crate) struct GlobalUniforms {
     shadow_method: u32,
     shadow_detail: u32,
     use_sdsm: u32,
+    stylized_lighting: u32,
+    /// std140 padding before the 16-byte-aligned `fog_color`.
+    _stylized_padding: [u32; 3],
     /// Scene fog colour (linear); `a == 0` disables fog.
     fog_color: [f32; 4],
     /// Scene fog distance window (`near`, `far`).
     fog_range: [f32; 2],
     _fog_padding: [f32; 2],
+    /// Character/NPC-only night fill (rgb colour, a intensity).
+    moon_fill: [f32; 4],
+    /// Procedural weather: x kind, y time, z intensity, w seed.
+    weather: [f32; 4],
 }
 
 #[derive(Copy, Clone, Pod, Zeroable)]
@@ -488,9 +495,13 @@ impl Prepare for GlobalContext {
             shadow_method: instructions.uniforms.shadow_method.into(),
             shadow_detail: instructions.uniforms.shadow_detail.into(),
             use_sdsm: instructions.uniforms.use_sdsm as u32,
+            stylized_lighting: instructions.uniforms.stylized_lighting as u32,
+            _stylized_padding: [0; 3],
             fog_color: instructions.uniforms.fog_color.components_linear(),
             fog_range: instructions.uniforms.fog_range,
             _fog_padding: [0.0; 2],
+            moon_fill: instructions.uniforms.moon_fill.components_linear(),
+            weather: instructions.uniforms.weather,
         };
 
         self.directional_light_uniforms = DirectionalLightUniforms {

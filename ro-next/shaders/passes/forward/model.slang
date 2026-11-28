@@ -83,6 +83,15 @@ func transparent_main(input: ModelVertexOutput) -> WboitOutput {
 }
 
 [ForceInline]
+func toon_ramp(value: float, steps: float) -> float {
+    let scaled = saturate(value) * steps;
+    let lower = floor(scaled);
+    let fraction = scaled - lower;
+    let edge = smoothstep(0.35, 0.65, fraction);
+    return (lower + edge) / steps;
+}
+
+[ForceInline]
 func fragment(input: ModelVertexOutput) -> float4 {
     var diffuse_color: float4;
     var alpha_channel: float;
@@ -220,7 +229,23 @@ func fragment(input: ModelVertexOutput) -> float4 {
         }
 
         let base_color = diffuse_color.rgb * input.color;
-        let light_contributions = saturate(ambient_light_contribution + directional_light_contribution + point_light_contribution);
+        var light_contributions = saturate(ambient_light_contribution + directional_light_contribution + point_light_contribution);
+
+        if (global_uniforms.stylized_lighting != 0u) {
+            // Cel-style lighting: keep the hue of the lit color but collapse
+            // its luminance into a small number of hard bands. A tiny floor
+            // prevents night-side geometry from becoming pure black.
+            let luminance = dot(light_contributions, float3(0.299, 0.587, 0.114));
+            let banded = max(toon_ramp(luminance, 4.0), 0.12);
+            let scale = banded / max(luminance, 0.0001);
+            light_contributions = saturate(light_contributions * scale);
+
+            // Subtle rim light so silhouettes read against the sky.
+            let view_direction = normalize(global_uniforms.camera_position.xyz - input.world_position.xyz);
+            let rim = pow(1.0 - saturate(dot(normal, view_direction)), 4.0) * 0.08;
+            light_contributions = saturate(light_contributions + rim);
+        }
+
         var color = base_color.rgb * light_contributions;
 
         if (global_uniforms.enhanced_lighting == 0) {

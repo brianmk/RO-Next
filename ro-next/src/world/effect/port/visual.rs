@@ -388,6 +388,13 @@ impl EffectBase for PortedVisual {
         }
 
         apply_render_fields(entity, CasterRenderFields::read(runtime));
+
+        // `render.flags & 8` is the official Assumptio pulse outline
+        // (`Player.cpp:1085`). The status reconciliation in
+        // `Client::update_status_auras` clears it when the status ends.
+        if runtime.parent_flags & 8 != 0 {
+            entity.set_status_pulse_outline(true);
+        }
     }
 
     /// Clears the tint this visual applied when the effect retires.

@@ -69,6 +69,14 @@ impl PlayerCamera {
         self.shake_intensity = intensity.max(0.0);
     }
 
+    /// Size multiplier for screen-space effects (weather particles).
+    ///
+    /// Zooming changes the camera distance, not the FOV, so screen-space
+    /// particles have to derive their apparent size from that distance.
+    pub fn zoom_scale(&self) -> f32 {
+        (DEFAULT_DISTANCE / self.camera_distance.get_current().max(1.0)).clamp(0.65, 1.6)
+    }
+
     pub fn soft_zoom(&mut self, zoom_factor: f32) {
         self.camera_distance
             .move_desired_clamp(zoom_factor * ZOOM_SPEED, MINIMUM_CAMERA_DISTANCE, MAXIMUM_CAMERA_DISTANCE);

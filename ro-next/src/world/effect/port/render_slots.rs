@@ -183,6 +183,8 @@ pub enum SlotBlend {
     AlphaOne,
     /// `ONE` / `ONE` - the `RSF_ADDITIVE` queue.
     Additive,
+    /// `DST` / `ZERO` - multiply the framebuffer by the emitted colour.
+    Multiply,
 }
 
 impl SlotBlend {
@@ -198,6 +200,7 @@ impl SlotBlend {
             Self::Alpha => (BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha),
             Self::AlphaOne => (BlendFactor::SrcAlpha, BlendFactor::One),
             Self::Additive => (BlendFactor::One, BlendFactor::One),
+            Self::Multiply => (BlendFactor::Dst, BlendFactor::Zero),
         }
     }
 }
@@ -5519,6 +5522,14 @@ pub fn render_soul_link(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle
             *corner = add(*corner, vec_a);
         }
 
+        // The orbit quad is authored too short. Double its height, then scale
+        // both dimensions by 50%, keeping the orbit anchor in place.
+        for corner in corners.iter_mut() {
+            corner[0] = vec_a[0] + (corner[0] - vec_a[0]) * 1.5;
+            corner[1] = vec_a[1] + (corner[1] - vec_a[1]) * 3.0;
+            corner[2] = vec_a[2] + (corner[2] - vec_a[2]) * 1.5;
+        }
+
         let alpha = slot.height[13] as i32 as i16;
 
         if corners[0][1] <= 0.0 {
@@ -5531,7 +5542,7 @@ pub fn render_soul_link(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle
                 true,
                 (125, 125, 255),
                 (0.0, 1.0, 0.0, 1.0),
-                SlotBlend::AlphaOne,
+                SlotBlend::Multiply,
             );
         }
     }

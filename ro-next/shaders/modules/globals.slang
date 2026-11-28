@@ -21,9 +21,14 @@ public struct GlobalUniforms {
     public var shadow_method: uint;
     public var shadow_detail: uint;
     public var use_sdsm: uint;
+    public var stylized_lighting: uint;
     // Scene fog: rgb is the fog colour, a is the "fog enabled" mask.
     public var fog_color: float4;
     // Scene fog distance window (near, far).
     public var fog_range: float2;
     public var _fog_padding: float2;
+    // Character/NPC-only night fill: rgb colour, a intensity.
+    public var moon_fill: float4;
+    // Procedural weather: x kind, y time, z intensity, w seed.
+    public var weather: float4;
 };

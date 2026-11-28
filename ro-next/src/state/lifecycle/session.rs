@@ -104,6 +104,13 @@ pub type SessionTransition = (SessionState, SessionEvent, SessionState);
 /// The complete transition table. Every entry is exercised by the
 /// `transition_table` test; every other (state, event) pair must be illegal.
 pub const SESSION_TRANSITIONS: &[SessionTransition] = &[
+    // Startup/menu: closing the window before any server connection must still
+    // enter the clean shutdown path and exit.
+    (
+        SessionState::Disconnected,
+        SessionEvent::ShutdownRequested,
+        SessionState::Shutdown,
+    ),
     // Login flow.
     (SessionState::Disconnected, SessionEvent::LoginStarted, SessionState::Login),
     (SessionState::Login, SessionEvent::LoginSucceeded, SessionState::CharSelect),
@@ -1009,6 +1016,7 @@ mod tests {
         let now = Instant::now();
 
         let states = [
+            SessionState::Disconnected,
             SessionState::Login,
             SessionState::CharSelect,
             SessionState::MapLoading,

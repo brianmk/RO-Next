@@ -30,6 +30,9 @@ pub struct GameSettings {
     /// the target's flinch are unaffected.
     #[serde(default = "default_show_damage_numbers")]
     pub show_damage_numbers: bool,
+    /// Use cel/banded lighting instead of smooth Lambert lighting.
+    #[serde(default = "default_stylized_lighting")]
+    pub stylized_lighting: bool,
 }
 
 fn default_show_cooldown_numbers() -> bool {
@@ -44,6 +47,10 @@ fn default_show_damage_numbers() -> bool {
     true
 }
 
+fn default_stylized_lighting() -> bool {
+    true
+}
+
 impl Default for GameSettings {
     fn default() -> Self {
         Self {
@@ -52,6 +59,7 @@ impl Default for GameSettings {
             show_cooldown_numbers: true,
             easy_monster_picking: true,
             show_damage_numbers: true,
+            stylized_lighting: true,
         }
     }
 }

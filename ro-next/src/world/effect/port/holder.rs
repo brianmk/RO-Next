@@ -337,6 +337,15 @@ impl PortedEffectHolder {
             return false;
         }
 
+        // Parented primitives (the Fury orbit icons) keep following the caster
+        // after their launch; ground effects stay at the cast position.
+        let runtime_position = self.runtime.position;
+        for primitive in &mut self.runtime.primitives {
+            if primitive.state.follow_parent {
+                primitive.state.position = EffectRuntime::official_position(runtime_position);
+            }
+        }
+
         self.attach_sprite_actions();
         self.runtime.process_primitives();
 

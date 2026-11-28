@@ -5,7 +5,7 @@
     "schema": 1,
     "description": "Status-effect facts merged from the rAthena server sources, the official 2019 client Lua tables, the reverse-engineered classic status table and the curated overlay. The client data file `ro-next/archive/data/client/status_effects.ron` is generated from this document by `tools/gen_status_effects.py`.",
     "server": {
-      "tree": "/home/phantom/popeng-llm-cpp/condaro-llm",
+      "tree": "/home/phantom/Games/ragnarok/CondaRO-linux/popeng-graft/scratch-condaro",
       "files": {
         "src/map/status.hpp": {
           "bytes": 87365,
@@ -29,15 +29,15 @@
         },
         {
           "name": "palettes.grf",
-          "path": "/home/phantom/Games/ragnarok/CondaRO-linux/client/game/palettes.grf"
+          "path": "/home/phantom/Games/ragnarok/CondaRo-client/game/palettes.grf"
         },
         {
           "name": "CondaRO.grf",
-          "path": "/home/phantom/Games/ragnarok/CondaRO-linux/client/game/CondaRO.grf"
+          "path": "/home/phantom/Games/ragnarok/CondaRo-client/game/CondaRO.grf"
         },
         {
           "name": "data.grf",
-          "path": "/home/phantom/Games/ragnarok/CondaRO-linux/client/game/data.grf"
+          "path": "/home/phantom/Games/ragnarok/CondaRo-client/game/data.grf"
         }
       ],
       "lub_files": {
@@ -70,13 +70,13 @@
     },
     "custom": {
       "file": "tools/data/status_effect_custom.ron",
-      "sha256": "c24f8360f84ec8533755a9a51e116017afa886b1486724df5a51e0517646cb02",
+      "sha256": "b77f56d6a18836be6139e71ce0b39b2bac5481a3e8c805f4a068cde0c697fdc0",
       "counts": {
         "names": 11,
         "icons": 6,
         "categories": 2,
         "value_labels": 7,
-        "auras": 20
+        "auras": 18
       }
     },
     "counts": {
@@ -89,7 +89,7 @@
       "merged_statuses": 616,
       "dropped_icons": 16,
       "values": 7,
-      "auras": 20
+      "auras": 18
     },
     "dropped_icons": [
       {
@@ -31667,57 +31667,7 @@
       "min_duration_in_milliseconds": null,
       "have_time_limit": true,
       "refresh": "Replace",
-      "stack": "Single",
-      "aura": {
-        "kind": "PersistentGlow",
-        "source": "procedural white glow for Assumptio (EFST_ASSUMPTIO/EFST_ASSUMPTIO2); textures verified in data.grf",
-        "textures": {
-          "ground": "effect\\whitelight.tga",
-          "ring": "effect\\whitelight.tga",
-          "body_frames": [
-            "effect\\whitelight.tga"
-          ],
-          "body_glow": "effect\\whitelight.tga"
-        },
-        "tint": {
-          "ground": [
-            1.0,
-            1.0,
-            1.0
-          ],
-          "body": [
-            1.0,
-            1.0,
-            1.0
-          ],
-          "glow": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        "radii": {
-          "ground": 11.0,
-          "ring": 7.5,
-          "body": 26.0,
-          "body_glow": 15.0
-        },
-        "timing": {
-          "body_frame_rate": 8.0,
-          "ring_rotation_speed": 0.5,
-          "body_rotation_speed": 0.25,
-          "body_camera_offset": 2.5,
-          "pulse_speed": 2.0,
-          "pulse_amount": 0.18
-        },
-        "alpha": {
-          "ground": 0.45,
-          "ring": 0.5,
-          "body": 0.55,
-          "body_glow": 0.45
-        },
-        "height": 13.0
-      }
+      "stack": "Single"
     },
     {
       "id": 112,
@@ -38167,57 +38117,7 @@
       "min_duration_in_milliseconds": null,
       "have_time_limit": true,
       "refresh": "Replace",
-      "stack": "Single",
-      "aura": {
-        "kind": "PersistentGlow",
-        "source": "procedural white glow for Assumptio (EFST_ASSUMPTIO/EFST_ASSUMPTIO2); textures verified in data.grf",
-        "textures": {
-          "ground": "effect\\whitelight.tga",
-          "ring": "effect\\whitelight.tga",
-          "body_frames": [
-            "effect\\whitelight.tga"
-          ],
-          "body_glow": "effect\\whitelight.tga"
-        },
-        "tint": {
-          "ground": [
-            1.0,
-            1.0,
-            1.0
-          ],
-          "body": [
-            1.0,
-            1.0,
-            1.0
-          ],
-          "glow": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        "radii": {
-          "ground": 11.0,
-          "ring": 7.5,
-          "body": 26.0,
-          "body_glow": 15.0
-        },
-        "timing": {
-          "body_frame_rate": 8.0,
-          "ring_rotation_speed": 0.5,
-          "body_rotation_speed": 0.25,
-          "body_camera_offset": 2.5,
-          "pulse_speed": 2.0,
-          "pulse_amount": 0.18
-        },
-        "alpha": {
-          "ground": 0.45,
-          "ring": 0.5,
-          "body": 0.55,
-          "body_glow": 0.45
-        },
-        "height": 13.0
-      }
+      "stack": "Single"
     },
     {
       "id": 476,

@@ -246,7 +246,9 @@ pub fn aura_tier_scale(level: usize) -> f32 {
     } else if level >= 100 {
         1.15
     } else {
-        1.0
+        // Level 99 uses the base tier; trim it by 10% because the official
+        // ground rings read too wide on our camera at the minimum aura level.
+        0.9
     }
 }
 

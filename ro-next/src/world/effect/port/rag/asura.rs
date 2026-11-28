@@ -123,6 +123,7 @@ pub(crate) fn textured_quad_ring_sized(runtime: &mut EffectRuntime, base_alpha: 
 
     // `state.renderFlag = RSF_ALPHA | RSF_CUSTOM_BLEND;`
     state.render_flag = 1 | 4;
+    state.follow_parent = true;
     state.duration = lifetime;
     state.texture = Some(name);
 
@@ -393,7 +394,10 @@ fn fury_shockwaves(runtime: &mut EffectRuntime) {
         let state = runtime.primitive_mut(index);
 
         state.render_flag = 1 | 4;
-        state.duration = lifetime;
+        // EF_GUMGANG2's official lifetime is 300 frames; EF_GUMGANG (the
+        // persistent Fury aura) is 99999, so do not inherit that lifetime for
+        // the shockwave.
+        state.duration = lifetime.min(300);
         state.total_texture = 1;
         state.texture = Some("effect\\ring_yellow.tga");
         state.size = 0.0;
@@ -694,7 +698,18 @@ impl PortedEffect for Gumgang {
     }
 
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        // `EF_GUMGANG` is parented to the actor; keep the anchor on the live
+        // caster so the orbit icons follow movement.
+        runtime.copy_parent_position();
+
+        // The official Fury cast launches TWO effects:
+        //   EF_GUMGANG  -> SuperSlashFan(1, 0)
+        //   EF_GUMGANG2 -> CVolcanoEffect's yellow ground shockwave
+        // (`GameModePackets.cpp:18832-18838`). The client maps the skill to a
+        // single ported body, so compose both official bodies here; otherwise
+        // the shockwave is never spawned.
         super_slash_fan(runtime, 1, 0);
+        fury_shockwaves(runtime);
 
         true
     }

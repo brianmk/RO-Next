@@ -11,6 +11,7 @@ mod fxaa;
 mod rectangle;
 mod smaa;
 mod wboit_resolve;
+mod weather;
 
 pub(crate) use blitter::{PostProcessingBlitterDrawData, PostProcessingBlitterDrawer};
 #[cfg(feature = "debug")]
@@ -25,6 +26,7 @@ pub(crate) use fxaa::PostProcessingFxaaDrawer;
 pub(crate) use rectangle::{PostProcessingRectangleDrawData, PostProcessingRectangleDrawer, PostProcessingRectangleLayer};
 pub(crate) use smaa::{PostProcessingSmaaBlendDrawer, PostProcessingSmaaBlendWeightsDrawer, PostProcessingSmaaEdgeDrawer};
 pub(crate) use wboit_resolve::{PostProcessingWboitResolveDrawData, PostProcessingWboitResolveDrawer};
+pub(crate) use weather::PostProcessingWeatherDrawer;
 use wgpu::{
     BindGroupLayout, CommandEncoder, Device, LoadOp, Operations, Queue, RenderPass, RenderPassColorAttachment, RenderPassDescriptor,
     StoreOp, TextureFormat,

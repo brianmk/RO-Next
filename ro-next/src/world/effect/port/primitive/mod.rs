@@ -823,6 +823,11 @@ pub struct EffectPrimitiveState {
 
     /// `/* 013C */ render.position`
     pub position: [f32; 3],
+    /// Port-only: this primitive follows the caster's live position. The
+    /// official `SuperSlashFan`/`SuperSlashSpread` effect primitives are
+    /// parented to the actor, so their orbit icons move with it; ground
+    /// shockwaves (`Gumgang2`) deliberately stay at the cast position.
+    pub follow_parent: bool,
     /// `/* 01C0 */ argb`
     pub argb: u32,
     /// `/* 023C */ red`, `/* 0240 */ green`, `/* 0244 */ blue`
@@ -976,6 +981,7 @@ impl Default for EffectPrimitiveState {
             records: Vec::new(),
             slots: [EffectPrimitiveSlot::default(); 4],
             position: [0.0; 3],
+            follow_parent: false,
             argb: u32::MAX,
             red: 255,
             green: 255,

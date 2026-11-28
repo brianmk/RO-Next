@@ -156,7 +156,7 @@ impl PortedEffect for SoulLink {
             runtime.play_sound_at_height("effect\\T_영혼.wav", -50.0);
         }
 
-        textured_orbit(runtime, "effect\\whitelight.tga");
+        textured_orbit(runtime, "effect\\alpha_center.tga");
         soul_link(runtime);
 
         true
@@ -183,7 +183,7 @@ mod tests {
         let state = &runtime.primitives[0].state;
         assert_eq!(state.count, PrimitiveId::SoulLink);
         assert_eq!(state.count.id(), 109);
-        assert_eq!(state.texture, Some("effect\\whitelight.tga"));
+        assert_eq!(state.texture, Some("effect\\alpha_center.tga"));
         assert_eq!(state.size, 0.0);
         assert_eq!(state.slots[0].life, 1);
         assert_eq!(state.slots[0].distance, 2.5);
