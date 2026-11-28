@@ -27,7 +27,7 @@ use super::super::primitive::PrimitiveId;
 use super::super::runtime::{EffectRng, EffectRuntime, PortedEffect};
 
 /// `CRagEffect::LineStreakLayered(short kind)` - `RagEffect.cpp:16760-16831`.
-fn line_streak_layered(runtime: &mut EffectRuntime, kind: i16) {
+pub(crate) fn line_streak_layered(runtime: &mut EffectRuntime, kind: i16) {
     runtime.copy_parent_position();
 
     if runtime.frame != 0 {

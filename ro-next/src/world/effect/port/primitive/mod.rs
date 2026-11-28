@@ -10,6 +10,7 @@
 //! present so far; add fields as functions are ported, never re-order or
 //! re-purpose one.
 
+pub mod acid_demon;
 pub mod asura_casting;
 pub mod aura_glow;
 pub mod bottom;
@@ -283,6 +284,8 @@ pub enum PrimitiveId {
     Bottom,
     /// `PP_BOTTOMOUT` (49) - `CRagEffect::Bottom_Out`'s fading panel.
     BottomOut,
+    /// `PP_ACIDDEMON` (118) - `PrimAcidDemon`'s four column fans.
+    AcidDemon,
     /// `PP_ASURACASTING` (68) - `PrimAsuraCasting`'s blade columns
     /// (`CRagEffect::AsuraStrike`) and the skill-icon flash
     /// (`CRagEffect::TexturedSkillIcon`). Drawn by `RenderHaloLayers`.
@@ -535,6 +538,7 @@ impl PrimitiveId {
             Self::Bottom2 => 48,
             Self::Bottom => 47,
             Self::BottomOut => 49,
+            Self::AcidDemon => 118,
             Self::AsuraCasting => 68,
             Self::Casting3d => 30,
             Self::WaveSpin => 31,
@@ -1162,6 +1166,10 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::BottomOut => {
                 bottom::prim_bottom_out(self, master);
+                true
+            }
+            PrimitiveId::AcidDemon => {
+                acid_demon::on_process(self, angles, master, rng);
                 true
             }
             PrimitiveId::AsuraCasting => {

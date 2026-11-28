@@ -9,6 +9,7 @@
 
 use ragnarok_packets::EffectId;
 
+use super::super::primitive::PrimitiveId;
 use super::super::runtime::{EffectRuntime, PortedEffect};
 
 fn ring(runtime: &mut EffectRuntime, texture: &'static str) {
@@ -48,7 +49,37 @@ impl PortedEffect for AcidDemon {
         }
 
         if runtime.frame == 0 {
-            ring(runtime, "effect\\ring_black.tga");
+            runtime.copy_parent_position();
+            runtime.play_sound("effect\\EF_FireWall.wav");
+
+            let lifetime = runtime.lifetime;
+            let index = runtime.launch(PrimitiveId::AcidDemon, [0.0, 0.0, 0.0]);
+            let state = runtime.primitive_mut(index);
+
+            state.render_flag = 1 | 4;
+            state.duration = lifetime;
+            state.total_texture = 1;
+            state.texture = Some("effect\\ring_black.tga");
+            state.size = 13.0;
+
+            for slot_index in 0..4usize {
+                let slot = &mut state.slots[slot_index];
+
+                slot.life = 1;
+                slot.process = 0;
+                slot.full_display_angle = if slot_index == 3 { 360 } else { 315 };
+                slot.max_height = [25.0, 22.0, 19.0, 30.0][slot_index];
+                slot.rot_start = [0, 90, 180, 0][slot_index];
+                slot.alpha_b = 0;
+                slot.distance = [2.4, 2.7, 3.0, 2.2][slot_index];
+                slot.rise_angle = [70, 57, 45, 90][slot_index];
+                slot.vec_b_now[1] = 0.0;
+
+                for height in 0..21usize {
+                    slot.height[height] = 0.0;
+                    slot.flag1[height] = 0;
+                }
+            }
         }
 
         true
@@ -65,17 +96,56 @@ impl PortedEffect for Chemical2 {
     }
 
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        if runtime.frame == 40 {
+            // `this->SlashFan(0); this->SlashFan(1);`
+            slash_fan(runtime, false);
+            slash_fan(runtime, true);
+        }
+
         if runtime.frame == 44 {
             runtime.quake();
             runtime.copy_parent_position();
             runtime.play_sound("effect\\연주붕격.wav");
         }
 
-        if runtime.frame == 0 {
-            ring(runtime, "effect\\ring_black.tga");
+        true
+    }
+}
+
+/// `CRagEffect::SlashFan` - `RagEffect.cpp:4144-4183`.
+fn slash_fan(runtime: &mut EffectRuntime, reverse: bool) {
+    runtime.copy_parent_position();
+    let target = EffectRuntime::official_position(runtime.target_offset);
+    let position = EffectRuntime::official_position(runtime.position);
+
+    let lifetime = runtime.lifetime;
+    let rise_angle = runtime.get_angle(target[0] - position[0], target[2] - position[2]) as i16;
+    let index = runtime.launch(PrimitiveId::SlashFan, [0.0, 0.0, 0.0]);
+    let state = runtime.primitive_mut(index);
+
+    state.render_flag |= 0x200;
+    state.duration = lifetime;
+    state.texture = Some("effect\\slash01.tga");
+
+    for slot_index in 0..4usize {
+        let slot = &mut state.slots[slot_index];
+
+        slot.life = 1;
+        slot.process = 0;
+        slot.distance = 100.0;
+        slot.max_height = 1.0;
+        slot.height[0] = if reverse {
+            slot_index as f32 * 2.5 + 15.0
+        } else {
+            -15.0 - slot_index as f32 * 2.5
+        };
+        slot.rise_angle = rise_angle;
+
+        if slot.rise_angle >= 360 {
+            slot.rise_angle -= 360;
         }
 
-        true
+        slot.alpha_b = 0;
     }
 }
 
@@ -98,6 +168,11 @@ impl PortedEffect for ChemicalDash {
     }
 
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        for _ in 0..4 {
+            super::line_streak::line_streak_layered(runtime, 10);
+            super::line_streak::line_streak_layered(runtime, 11);
+        }
+
         if runtime.frame == 44 {
             runtime.quake();
             runtime.copy_parent_position();
@@ -105,10 +180,6 @@ impl PortedEffect for ChemicalDash {
             if !self.dash2 {
                 runtime.play_sound("effect\\연주붕격.wav");
             }
-        }
-
-        if runtime.frame == 0 {
-            ring(runtime, "effect\\ring_black.tga");
         }
 
         true
@@ -131,11 +202,7 @@ impl PortedEffect for DragonFear {
             runtime.quake();
         }
 
-        if runtime.frame == 0 {
-            ring(runtime, "effect\\ring_red.tga");
-        }
-
-        true
+        runtime.process_str()
     }
 }
 
@@ -149,15 +216,17 @@ impl PortedEffect for SuiExplosion {
     }
 
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        if runtime.frame == 0 {
+            // `this->Hit2(1);` - the impact shards are a real primitive layer
+            // under the screen clip.
+            super::hit::Hit2::new(1).on_process(runtime);
+        }
+
         if matches!(runtime.frame, 3 | 7 | 9) {
             runtime.quake();
         }
 
-        if runtime.frame == 0 {
-            ring(runtime, "effect\\ring_red.tga");
-        }
-
-        true
+        runtime.process_str()
     }
 }
 
@@ -209,15 +278,11 @@ impl PortedEffect for FirePillarBomb {
     }
 
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
-        if runtime.frame == 35 {
-            runtime.quake();
-        }
-
         if runtime.frame == 0 {
-            ring(runtime, "effect\\ring_red.tga");
+            runtime.play_sound("effect\\wizard_fire_pillar_b.wav");
         }
 
-        true
+        runtime.process_str()
     }
 }
 
@@ -231,21 +296,23 @@ impl PortedEffect for MeteorStorm {
     }
 
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
-        if (25..=55).contains(&runtime.frame) && runtime.frame % 3 == 0 {
+        if runtime.frame == 0 {
+            runtime.play_sound("effect\\wizard_meteor.wav");
+        }
+
+        if runtime.frame == 40 {
             runtime.quake();
         }
 
-        if runtime.frame == 0 {
-            ring(runtime, "effect\\ring_red.tga");
-        }
-
-        true
+        runtime.process_str()
     }
 }
 
-/// `EF_LORD` - `RagEffect.cpp:24935-24945`.
+/// `EF_LORD` - `RagEffect.cpp:24905-24948`.
 #[derive(Debug, Default)]
 pub struct Lord;
+
+const LORD_SOUND_FRAMES: &[i32] = &[0, 10, 20, 50, 80, 100, 130, 140, 180, 200];
 
 impl PortedEffect for Lord {
     fn lifetime(&self) -> i32 {
@@ -253,12 +320,18 @@ impl PortedEffect for Lord {
     }
 
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
-        if runtime.frame == 0 {
-            ring(runtime, "effect\\ring_blue.tga");
+        if LORD_SOUND_FRAMES.contains(&runtime.frame) {
+            // The official body plays a positional wave; the port records the
+            // ordinary sound request (the runtime's positional sink is for the
+            // explicit PlayEffectWaveAt call sites).
+            runtime.play_sound("effect\\wizard_meteo.wav");
+        }
+
+        if runtime.frame >= 50 && runtime.frame < 300 && runtime.frame % 50 == 0 {
             runtime.quake();
         }
 
-        true
+        runtime.process_str()
     }
 }
 

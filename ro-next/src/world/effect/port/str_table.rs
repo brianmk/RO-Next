@@ -418,6 +418,31 @@ static CHAIN_COMBO: StrResource = StrResource {
 /// `CartRevolution` were the two ids excluded from `registry::ported_ids()`
 /// until this table existed; the other four belong to bodies that were already
 /// registered (`StormGust`, `GlassWall`, `Aspersio`, `PotionPill`) and whose
+static LORD: StrResource = StrResource {
+    files: &["Lord.str"],
+    loop_limit: 0,
+};
+
+static METEOR_STORM: StrResource = StrResource {
+    files: &["Meteor1.str"],
+    loop_limit: 0,
+};
+
+static SUI_EXPLOSION: StrResource = StrResource {
+    files: &["sui_explosion.str"],
+    loop_limit: 0,
+};
+
+static DRAGON_FEAR: StrResource = StrResource {
+    files: &["dfear.str"],
+    loop_limit: 0,
+};
+
+static FIRE_PILLAR_BOMB: StrResource = StrResource {
+    files: &["FirePillarBomb.str"],
+    loop_limit: 0,
+};
+
 /// `.str` layer was never opened before.
 pub fn str_resource(effect: EffectId) -> Option<&'static StrResource> {
     Some(match effect {
@@ -547,6 +572,13 @@ pub fn str_resource(effect: EffectId) -> Option<&'static StrResource> {
         EffectId::Hyousyouraku => &ICY,
         // `case EF_BULLSEYE: std::sprintf(name, "불스아이.str");` - 503-504.
         EffectId::Bullseye => &BULLSEYE,
+        // `.str`-only effects whose clips were previously missing.
+        EffectId::Lord => &LORD,
+        EffectId::Meteorstorm => &METEOR_STORM,
+        EffectId::SuiExplosion => &SUI_EXPLOSION,
+        EffectId::Dragonfear => &DRAGON_FEAR,
+        EffectId::Firepillarbomb => &FIRE_PILLAR_BOMB,
+
         // Positional-sound tier (`rag/positional.rs`).
         //
         // `case EF_GLORIA:` `gloria_min.str` toggle - 66-68.

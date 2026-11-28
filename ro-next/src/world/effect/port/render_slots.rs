@@ -428,6 +428,7 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         PrimitiveId::StackedRings => SlotRenderer::StackedRings,
         PrimitiveId::PeongUp => SlotRenderer::PeongUp,
         PrimitiveId::Casting3d | PrimitiveId::WaveSpin => SlotRenderer::Casting,
+        PrimitiveId::AcidDemon => SlotRenderer::Casting,
         PrimitiveId::AsuraCasting => SlotRenderer::HaloLayers,
         // Prim 147 (`TexturedSlam`) reuses `RenderHaloLayers`.
         PrimitiveId::TexturedSlam => SlotRenderer::HaloLayers,
