@@ -74,6 +74,8 @@ pub struct Uniforms {
     pub fog_color: Color,
     /// Scene fog distance window (`near`, `far`).
     pub fog_range: [f32; 2],
+    /// Character/NPC-only night fill (rgb colour, a intensity).
+    pub moon_fill: Color,
     pub enhanced_lighting: bool,
     pub shadow_method: ShadowMethod,
     pub shadow_detail: ShadowDetail,
@@ -92,6 +94,7 @@ impl Default for Uniforms {
             stylized_lighting: false,
             fog_color: Color::TRANSPARENT,
             fog_range: [0.0, 0.0],
+            moon_fill: Color::rgba(0.0, 0.0, 0.0, 0.0),
             enhanced_lighting: false,
             shadow_method: ShadowMethod::Hard,
             shadow_detail: ShadowDetail::Low,

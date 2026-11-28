@@ -112,6 +112,8 @@ pub(crate) struct GlobalUniforms {
     /// Scene fog distance window (`near`, `far`).
     fog_range: [f32; 2],
     _fog_padding: [f32; 2],
+    /// Character/NPC-only night fill (rgb colour, a intensity).
+    moon_fill: [f32; 4],
 }
 
 #[derive(Copy, Clone, Pod, Zeroable)]
@@ -496,6 +498,7 @@ impl Prepare for GlobalContext {
             fog_color: instructions.uniforms.fog_color.components_linear(),
             fog_range: instructions.uniforms.fog_range,
             _fog_padding: [0.0; 2],
+            moon_fill: instructions.uniforms.moon_fill.components_linear(),
         };
 
         self.directional_light_uniforms = DirectionalLightUniforms {

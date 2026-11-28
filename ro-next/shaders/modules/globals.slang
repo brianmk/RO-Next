@@ -27,4 +27,6 @@ public struct GlobalUniforms {
     // Scene fog distance window (near, far).
     public var fog_range: float2;
     public var _fog_padding: float2;
+    // Character/NPC-only night fill: rgb colour, a intensity.
+    public var moon_fill: float4;
 };

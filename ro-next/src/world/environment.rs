@@ -42,8 +42,8 @@ const RANDOM_WEATHER_MIN_SECONDS: f32 = 60.0;
 const RANDOM_WEATHER_MAX_SECONDS: f32 = 180.0;
 const FIRST_WEATHER_DELAY_SECONDS: f32 = 15.0;
 
-const NIGHT_AMBIENT_SCALE: f32 = 0.28;
-const NIGHT_SUN_SCALE: f32 = 0.12;
+const NIGHT_AMBIENT_SCALE: f32 = 0.45;
+const NIGHT_SUN_SCALE: f32 = 0.30;
 const NIGHT_TINT: Color = Color::rgb(0.62, 0.72, 1.0);
 const NIGHT_BACKGROUND: Color = Color::rgb_u8(4, 8, 20);
 const DAY_PRONTERA_BACKGROUND: Color = Color::rgb_u8(78, 116, 170);
@@ -55,6 +55,8 @@ pub struct EnvironmentSample {
     pub ambient_light_color: Color,
     pub directional_light_direction: Vector3<f32>,
     pub directional_light_color: Color,
+    /// Character/NPC-only night fill (rgb colour, a intensity).
+    pub moon_fill: Color,
     pub background_color: Color,
     pub scene_fog: Option<SceneFog>,
 }
@@ -231,6 +233,7 @@ impl Environment {
             ambient_light_color,
             directional_light_direction: self.celestial_direction(),
             directional_light_color,
+            moon_fill: Color::rgba(0.55, 0.65, 1.0, 0.55 * night),
             background_color: self.background_color(map, night),
             scene_fog: map.scene_fog().map(|fog| SceneFog {
                 color: lerp_color(fog.color, NIGHT_BACKGROUND, night),

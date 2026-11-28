@@ -164,8 +164,9 @@ func fragment(input: ForwardEntityVertexOutput) -> ForwardEntityFragmentOutput {
         let clip_position = mul(global_uniforms.view_projection, adjusted_world_position);
         let frag_depth = saturate(clip_position.z / clip_position.w);
 
-        // Ambient light
-        var ambient_light_contribution = global_uniforms.ambient_color.rgb;
+        // Ambient light plus the night-only character/NPC fill.
+        var ambient_light_contribution = global_uniforms.ambient_color.rgb
+            + global_uniforms.moon_fill.rgb * global_uniforms.moon_fill.a;
 
         // Directional light
         let light_direction = normalize(-directional_light.direction.xyz);
