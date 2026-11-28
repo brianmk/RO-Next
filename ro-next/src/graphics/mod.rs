@@ -105,6 +105,8 @@ pub(crate) struct GlobalUniforms {
     shadow_detail: u32,
     use_sdsm: u32,
     stylized_lighting: u32,
+    /// std140 padding before the 16-byte-aligned `fog_color`.
+    _stylized_padding: [u32; 3],
     /// Scene fog colour (linear); `a == 0` disables fog.
     fog_color: [f32; 4],
     /// Scene fog distance window (`near`, `far`).
@@ -490,6 +492,7 @@ impl Prepare for GlobalContext {
             shadow_detail: instructions.uniforms.shadow_detail.into(),
             use_sdsm: instructions.uniforms.use_sdsm as u32,
             stylized_lighting: instructions.uniforms.stylized_lighting as u32,
+            _stylized_padding: [0; 3],
             fog_color: instructions.uniforms.fog_color.components_linear(),
             fog_range: instructions.uniforms.fog_range,
             _fog_padding: [0.0; 2],
