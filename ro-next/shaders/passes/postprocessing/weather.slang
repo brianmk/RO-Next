@@ -39,15 +39,14 @@ func mapleShape(value: float2) -> float {
 }
 
 func snowShape(value: float2) -> float {
-    var distance = length(value) - 0.085;
-    for (var i = 0; i < 3; i++) {
-        let angle = float(i) * PI / 3.0;
-        let direction = float2(cos(angle), sin(angle));
-        let along = dot(value, direction);
-        let across = abs(dot(value, float2(-direction.y, direction.x)));
-        distance = min(distance, max(abs(along) - 0.13, across - 0.018));
-    }
-    return distance;
+    // Six soft lobes around a bright center. The previous shape was three
+    // crossing bars, which turned into dashes as soon as the card tilted.
+    let radius = length(value);
+    let angle = atan2(value.y, value.x);
+    let lobes = 0.070 + 0.038 * pow(abs(cos(3.0 * angle)), 7.0);
+    let body = radius - lobes;
+    let center = radius - 0.042;
+    return min(body, center);
 }
 
 func noise2(value: float2) -> float {
@@ -109,7 +108,9 @@ func particleLayer(
     let parallax = global_uniforms.camera_position.xz * (-0.0018 * depth);
     var p = float2(uv.x * aspect, uv.y) + float2(parallax.x, parallax.y * 0.35);
     p += direction * time * (0.020 + speed * 0.55);
-    p.y += time * speed;
+    // Screen UV points down. Subtracting from the sample coordinate makes the
+    // pattern travel down the screen; the old + was moving petals upward.
+    p.y -= time * speed * 1.6;
     let cell = floor(p * density);
     let local_cell = frac(p * density);
     let random = hash21(cell + float2(seed, seed * 1.7));
@@ -126,11 +127,17 @@ func particleLayer(
     // axis). Dividing by the projected axis lengths makes the particle turn
     // edge-on and open up again, instead of only spinning like a sticker.
     let spin_roll = random * TAU + time * (0.5 + random * 1.1);
-    let spin_yaw = random * TAU + time * (0.35 + random * 1.35);
-    let spin_pitch = random * TAU + time * (0.28 + random * 1.55);
+    var spin_yaw = random * TAU + time * (0.35 + random * 1.35);
+    var spin_pitch = random * TAU + time * (0.28 + random * 1.55);
+    if (shape == 2u) {
+        // Snow should keep most of its face visible; full edge-on tumbling
+        // turns the six arms into thin dashes.
+        spin_yaw *= 0.38;
+        spin_pitch *= 0.38;
+    }
     local = rotate2(local, spin_roll);
-    let yaw_cos = max(abs(cos(spin_yaw)), 0.18);
-    let pitch_cos = max(abs(cos(spin_pitch)), 0.18);
+    let yaw_cos = max(abs(cos(spin_yaw)), 0.24);
+    let pitch_cos = max(abs(cos(spin_pitch)), 0.24);
     local = float2(local.x / yaw_cos, local.y / pitch_cos);
 
     // Smaller base particles; zooming in makes them slightly larger because
@@ -149,7 +156,15 @@ func particleLayer(
     // Depth shading: the near face is a little brighter than the edge.
     let face = smoothstep(0.0, -0.055, distance);
     let shaded = tint * (0.72 + 0.28 * face);
-    let alpha = smoothstep(0.012, -0.012, distance) * (0.38 + 0.28 * random) * (0.55 + depth * 0.55);
+    var alpha = smoothstep(0.012, -0.012, distance) * (0.38 + 0.28 * random) * (0.55 + depth * 0.55);
+
+    if (shape == 2u) {
+        // Soft halo around each flake hides the hard SDF edge at small sizes.
+        let radial = length(local);
+        let halo = exp(-radial * radial * 95.0) * (0.10 + 0.08 * depth);
+        alpha = max(alpha, halo);
+    }
+
     return float4(shaded, alpha);
 }
 
