@@ -74,26 +74,52 @@ func fbm(value: float2) -> float {
 }
 
 func windStrength(time: float) -> float {
-    // A slow breeze plus occasional sharp gusts. The gust frequency and
-    // phase are intentionally incommensurate so the pattern doesn't repeat
-    // visibly during a play session.
+    // A slow breeze plus occasional sharp gusts.
     let breeze = 0.5 + 0.5 * sin(time * 0.13 + 0.4);
     let gust = pow(max(0.0, sin(time * 0.37 + 1.7)), 8.0);
     return 0.10 + 0.16 * breeze + 0.55 * gust;
 }
 
-func particleLayer(uv: float2, aspect: float, density: float, speed: float, seed: float, shape: uint, tint: float3, time: float) -> float4 {
+func gustAt(uv: float2, time: float) -> float2 {
+    // A travelling gust cell. Only particles inside its footprint react, so
+    // the whole screen doesn't lurch sideways at the same time.
+    let center = float2(0.5 + 0.35 * sin(time * 0.13 + 0.7), 0.45 + 0.28 * cos(time * 0.10 + 1.9));
+    let delta = (uv - center) * float2(1.0, 1.25);
+    let influence = exp(-dot(delta, delta) * 12.0);
+    let pulse = pow(max(0.0, sin(time * 0.41 + 0.3)), 6.0);
+    let direction = normalize(float2(cos(time * 0.17), 0.22 + 0.22 * sin(time * 0.11)));
+    return direction * influence * pulse * 0.10;
+}
+
+func particleLayer(
+    uv: float2,
+    aspect: float,
+    density: float,
+    speed: float,
+    seed: float,
+    shape: uint,
+    tint: float3,
+    time: float,
+    depth: float,
+    direction: float2
+) -> float4 {
     let wind = windStrength(time);
-    var p = float2(uv.x * aspect, uv.y);
-    p.x += time * 0.022 + wind * 0.28;
+    // Near layers drift faster than far layers, and camera movement shifts
+    // them more, which gives the flat screen-space particles parallax depth.
+    let parallax = global_uniforms.camera_position.xz * (-0.0018 * depth);
+    var p = float2(uv.x * aspect, uv.y) + float2(parallax.x, parallax.y * 0.35);
+    p += direction * time * (0.020 + speed * 0.55);
     p.y += time * speed;
     let cell = floor(p * density);
     let local_cell = frac(p * density);
     let random = hash21(cell + float2(seed, seed * 1.7));
     let center = float2(0.16 + 0.68 * hash21(cell + float2(1.0, seed)), 0.16 + 0.68 * hash21(cell + float2(seed, 2.0)));
     var local = local_cell - center;
-    // Horizontal sway grows with the current gust strength.
-    local.x += sin(time * (1.2 + random * 0.9) + random * TAU) * wind * 0.075;
+    // Sway and local gust displacement. The gust uses the particle's screen
+    // position, so it moves one patch of petals/flakes rather than the field.
+    let gust = gustAt(uv + float2(seed * 0.07, seed * 0.04), time);
+    local += gust * (0.35 + depth);
+    local.x += sin(time * (1.2 + random * 0.9) + random * TAU) * wind * 0.055;
 
     // 3D tumble: a flat petal/flake is projected through roll (screen-plane
     // spin), yaw (around the vertical axis) and pitch (around the horizontal
@@ -107,7 +133,7 @@ func particleLayer(uv: float2, aspect: float, density: float, speed: float, seed
     let pitch_cos = max(abs(cos(spin_pitch)), 0.18);
     local = float2(local.x / yaw_cos, local.y / pitch_cos);
 
-    let scale = 0.75 + 0.35 * hash21(cell + float2(3.0, seed));
+    let scale = (0.55 + 0.35 * hash21(cell + float2(3.0, seed))) * (0.65 + depth * 0.65);
     var distance = 0.0;
     if (shape == 0u) {
         distance = sakuraShape(local / scale);
@@ -116,8 +142,12 @@ func particleLayer(uv: float2, aspect: float, density: float, speed: float, seed
     } else {
         distance = snowShape(local / scale);
     }
-    let alpha = smoothstep(0.012, -0.012, distance) * (0.45 + 0.35 * random);
-    return float4(tint, alpha);
+
+    // Depth shading: the near face is a little brighter than the edge.
+    let face = smoothstep(0.0, -0.055, distance);
+    let shaded = tint * (0.72 + 0.28 * face);
+    let alpha = smoothstep(0.012, -0.012, distance) * (0.38 + 0.28 * random) * (0.55 + depth * 0.55);
+    return float4(shaded, alpha);
 }
 
 func weatherParticles(uv: float2, kind: uint, time: float, intensity: float) -> float4 {
@@ -125,14 +155,18 @@ func weatherParticles(uv: float2, kind: uint, time: float, intensity: float) -> 
     var result = float4(0.0);
 
     if (kind == 1u) {
-        result += particleLayer(uv, aspect, 5.5, 0.075, 1.0, 2u, float3(0.92, 0.96, 1.0), time);
-        result += particleLayer(uv + float2(0.31, 0.17), aspect, 4.2, 0.055, 4.0, 2u, float3(0.82, 0.90, 1.0), time) * 0.55;
+        // Three parallax layers: far, middle, near.
+        result += particleLayer(uv, aspect, 2.4, 0.055, 1.0, 2u, float3(0.82, 0.90, 1.0), time, 0.30, float2(-0.45, 1.0)) * 0.55;
+        result += particleLayer(uv + float2(0.31, 0.17), aspect, 3.0, 0.085, 4.0, 2u, float3(0.92, 0.96, 1.0), time, 0.62, float2(0.30, 1.0)) * 0.78;
+        result += particleLayer(uv + float2(0.64, 0.38), aspect, 2.2, 0.12, 9.0, 2u, float3(1.0, 1.0, 1.0), time, 1.0, float2(-0.12, 1.0)) * 0.95;
     } else if (kind == 2u) {
-        result += particleLayer(uv, aspect, 5.5, 0.045, 2.0, 0u, float3(1.0, 0.58, 0.74), time) * 0.75;
-        result += particleLayer(uv + float2(0.43, 0.21), aspect, 4.2, 0.035, 7.0, 0u, float3(1.0, 0.76, 0.86), time) * 0.45;
+        result += particleLayer(uv, aspect, 2.2, 0.035, 2.0, 0u, float3(1.0, 0.72, 0.82), time, 0.30, float2(-0.55, 1.0)) * 0.50;
+        result += particleLayer(uv + float2(0.43, 0.21), aspect, 3.0, 0.050, 7.0, 0u, float3(1.0, 0.58, 0.74), time, 0.62, float2(0.38, 1.0)) * 0.72;
+        result += particleLayer(uv + float2(0.72, 0.44), aspect, 2.0, 0.070, 12.0, 0u, float3(1.0, 0.86, 0.90), time, 1.0, float2(-0.18, 1.0)) * 0.95;
     } else if (kind == 3u) {
-        result += particleLayer(uv, aspect, 4.0, 0.030, 3.0, 1u, float3(1.0, 0.56, 0.20), time) * 0.8;
-        result += particleLayer(uv + float2(0.37, 0.41), aspect, 3.2, 0.024, 8.0, 1u, float3(0.90, 0.38, 0.12), time) * 0.5;
+        result += particleLayer(uv, aspect, 1.8, 0.022, 3.0, 1u, float3(0.78, 0.34, 0.12), time, 0.30, float2(-0.50, 1.0)) * 0.55;
+        result += particleLayer(uv + float2(0.37, 0.41), aspect, 2.6, 0.032, 8.0, 1u, float3(0.92, 0.48, 0.16), time, 0.62, float2(0.32, 1.0)) * 0.78;
+        result += particleLayer(uv + float2(0.66, 0.23), aspect, 1.9, 0.045, 13.0, 1u, float3(1.0, 0.62, 0.22), time, 1.0, float2(-0.15, 1.0)) * 0.95;
     }
 
     result.a = min(1.0, result.a) * intensity;
