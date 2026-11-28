@@ -426,15 +426,28 @@ impl Map {
         // order (body, head, equipment), but a nearer character is submitted
         // after a farther one so its sprites win the depth/WBOIT blend.
         //
-        // Sort by view-space depth, not Euclidean distance: two characters
-        // can have very different lateral distances while standing at the
-        // same projected depth, and the near/far sprite overlap follows the
-        // view direction.
+        // Sort by the projected screen height of the feet. This is the same
+        // visual front/back cue a 2.5D isometric sprite uses, and unlike raw
+        // world distance it stays correct while the camera rotates around the
+        // player. View-space depth is the tie breaker.
+        let view_projection = camera.view_projection_matrix();
         let camera_position = camera.camera_position();
         let view_direction = camera.view_direction();
+        let screen_y = |entity: &Entity| {
+            let clip = view_projection * entity.get_position().to_homogeneous();
+
+            match clip.w.abs() > f32::EPSILON {
+                true => clip.y / clip.w,
+                false => 0.0,
+            }
+        };
         let view_depth = |entity: &Entity| (entity.get_position() - camera_position).dot(view_direction);
         let mut order: Vec<_> = entities.iter().enumerate().collect();
-        order.sort_by(|(_, left), (_, right)| view_depth(right).total_cmp(&view_depth(left)));
+        order.sort_by(|(_, left), (_, right)| {
+            screen_y(right)
+                .total_cmp(&screen_y(left))
+                .then_with(|| view_depth(right).total_cmp(&view_depth(left)))
+        });
         order
             .into_iter()
             .for_each(|(index, entity)| entity.render(instructions, camera, index != 0, client_tick));
