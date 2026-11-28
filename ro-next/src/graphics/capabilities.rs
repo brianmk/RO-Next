@@ -81,8 +81,18 @@ impl Capabilities {
             Self::check_feature(adapter_features, Features::POLYGON_MODE_LINE);
         }
 
-        if adapter_features
-            .contains(Features::SAMPLED_TEXTURE_AND_STORAGE_BUFFER_ARRAY_NON_UNIFORM_INDEXING | Features::TEXTURE_BINDING_ARRAY)
+        // The 10k-element bindless binding array is only safe when the driver
+        // can back the whole descriptor table. Some Windows/NVIDIA D3D12
+        // drivers fail the bind-group allocation with `Out of Memory` even on
+        // large GPUs; keep bindless opt-in on Windows and fall back to the
+        // ordinary texture bind groups.
+        let bindless_allowed = std::env::var("RO_NEXT_BINDLESS")
+            .map(|value| value != "0")
+            .unwrap_or(!cfg!(target_os = "windows"));
+
+        if bindless_allowed
+            && adapter_features
+                .contains(Features::SAMPLED_TEXTURE_AND_STORAGE_BUFFER_ARRAY_NON_UNIFORM_INDEXING | Features::TEXTURE_BINDING_ARRAY)
             && adapter_limits.max_binding_array_elements_per_shader_stage >= MAX_BINDING_ARRAY_ELEMENTS_PER_SHADER_STAGE
         {
             capabilities.bindless = BindlessSupport::Limited;
