@@ -62,6 +62,17 @@ DEFAULT_OUTPUT = Path("tools/data/rathena_pre_re_item_facts.json")
 #: The import manifest. Its ``Footer.Imports`` list is the authoritative list of
 #: item database files; the script follows it instead of hard-coding the split.
 ITEM_DB_MANIFEST = "db/pre-re/item_db.yml"
+RENEWAL_ITEM_DB_MANIFEST = "db/re/item_db.yml"
+# rAthena's renewal database spells a few item types differently from the
+# pre-renewal client stat table. Normalize them when merging so the generated
+# `item_stats.ron` covers every item the server can hand out.
+RENEWAL_TYPE_ALIASES = {
+    "DelayConsume": "Delayconsume",
+    "PetEgg": "Petegg",
+    "PetArmor": "Petarmor",
+    "ShadowGear": "Armor",
+    "Shadowgear": "Armor",
+}
 
 #: Items that can be used from the inventory (rAthena ``enum item_types``
 #: groups). ``Cash`` items are consumables that were bought with cash points.
@@ -301,6 +312,25 @@ def load_manifest(server_tree: Path) -> tuple[Path, list[Path]]:
     return manifest, paths
 
 
+def load_manifest_path(server_tree: Path, relative: str) -> tuple[Path, list[Path]]:
+    manifest = server_tree / relative
+    if not manifest.is_file():
+        raise SystemExit(f"item database manifest not found: {manifest}")
+    payload = yaml.safe_load(manifest.read_text())
+    imports = ((payload.get("Footer") or {}).get("Imports")) or []
+    paths = []
+    for entry in imports:
+        path_name = entry.get("Path") if isinstance(entry, dict) else entry
+        if not path_name:
+            raise SystemExit(f"{manifest}: import without a Path: {entry!r}")
+        path = server_tree / path_name
+        if not path.is_file():
+            raise SystemExit(f"{manifest}: imported item database not found: {path}")
+        paths.append(path)
+    if not paths:
+        raise SystemExit(f"{manifest}: no imports found")
+    return manifest, paths
+
 def item_fact(entry: dict) -> dict:
     """Converts one rAthena item database entry into the client fact row."""
     item_type = str(entry.get("Type") or "Etc")
@@ -329,7 +359,7 @@ def item_fact(entry: dict) -> dict:
     }
 
 
-def extract(server_tree: Path, server_head_value: str = "") -> dict:
+def extract(server_tree: Path, server_head_value: str = "", include_renewal: bool = True) -> dict:
     manifest, db_paths = load_manifest(server_tree)
 
     items: list[dict] = []
@@ -348,6 +378,28 @@ def extract(server_tree: Path, server_head_value: str = "") -> dict:
             seen[item_id] = path.name
             items.append(item_fact(entry))
 
+    renewal_databases: list[tuple[Path, int]] = []
+    if include_renewal and (server_tree / RENEWAL_ITEM_DB_MANIFEST).is_file():
+        _, renewal_paths = load_manifest_path(server_tree, RENEWAL_ITEM_DB_MANIFEST)
+        seen_ids = {row["id"] for row in items}
+        for path in renewal_paths:
+            payload = yaml.safe_load(path.read_text())
+            body = payload.get("Body") or []
+            renewal_databases.append((path, len(body)))
+            for entry in body:
+                item_id = int(entry["Id"])
+                if item_id in seen_ids:
+                    continue
+                fact = item_fact(entry)
+                fact["type"] = RENEWAL_TYPE_ALIASES.get(fact["type"], fact["type"])
+                if fact["type"] not in (
+                    "Healing", "Usable", "Etc", "Armor", "Weapon", "Card", "Petegg",
+                    "Petarmor", "Ammo", "Delayconsume", "Cash",
+                ):
+                    continue
+                seen_ids.add(item_id)
+                items.append(fact)
+
     items.sort(key=lambda row: row["id"])
 
     # Validation: every id unique and every flat bonus value an integer in a
@@ -360,7 +412,7 @@ def extract(server_tree: Path, server_head_value: str = "") -> dict:
 
     return {
         "provenance": {
-            "source": "rAthena pre-renewal item database of the CondaRO server tree",
+            "source": "rAthena pre-renewal + renewal item databases of the CondaRO server tree",
             "server_head": server_head_value or server_head(server_tree),
             "packetver": packet_version(server_tree) or "unknown",
             "renewal_mode": renewal_mode(server_tree),
@@ -373,6 +425,14 @@ def extract(server_tree: Path, server_head_value: str = "") -> dict:
                     "items": database_counts[path.name],
                 }
                 for path in db_paths
+            ]
+            + [
+                {
+                    "path": str(path.relative_to(server_tree)),
+                    "sha256": sha256(path),
+                    "items": count,
+                }
+                for path, count in renewal_databases
             ],
             "item_count": len(items),
             "usable_items": sum(1 for row in items if row["usable"]),
