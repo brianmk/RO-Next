@@ -197,6 +197,13 @@ impl Environment {
         self.weather.kind()
     }
 
+    /// `Some(true)` when the server's `EFST_SKE` says night, `Some(false)` for
+    /// server day, `None` when no SKE has been received and the local clock is
+    /// the fallback.
+    pub fn server_night(&self) -> Option<bool> {
+        self.server_night
+    }
+
     /// Current in-game hour, derived from the 15/15 cycle (0..24).
     pub fn hour(&self) -> f32 {
         (self.elapsed / CYCLE_SECONDS) * 24.0

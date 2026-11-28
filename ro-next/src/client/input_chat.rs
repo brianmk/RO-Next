@@ -257,6 +257,24 @@ impl Client {
             return;
         }
 
+        // Local environment diagnostics (`/env`). This shows the local clock,
+        // the server SKE state and the active weather without touching the
+        // server.
+        if text.trim().eq_ignore_ascii_case("/env") {
+            let hour = self.environment.hour();
+            let night = self.environment.night_factor();
+            let server = match self.environment.server_night() {
+                Some(true) => "night",
+                Some(false) => "day",
+                None => "local clock",
+            };
+            let weather = self.environment.current_weather().map(|kind| kind.name()).unwrap_or("clear");
+            self.push_chat_information(format!(
+                "Environment: local {hour:.1}h, night {night:.2}, server {server}, weather {weather}."
+            ));
+            return;
+        }
+
         // Local environment preview (`/weather [clear|snow|...]`). This is a
         // visual client-side control; the server remains authoritative for
         // gameplay.
