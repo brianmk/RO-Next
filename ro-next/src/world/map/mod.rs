@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use std::mem::size_of;
 use std::sync::{Arc, Mutex};
 
-use cgmath::{Deg, Matrix4, Point3, SquareMatrix, Vector3};
+use cgmath::{Deg, InnerSpace, Matrix4, Point3, SquareMatrix, Vector3};
 #[cfg(feature = "debug")]
 use option_ext::OptionExt;
 #[cfg(feature = "debug")]
@@ -425,12 +425,16 @@ impl Map {
         // Draw whole entities far-to-near. Each entity keeps its own part
         // order (body, head, equipment), but a nearer character is submitted
         // after a farther one so its sprites win the depth/WBOIT blend.
+        //
+        // Sort by view-space depth, not Euclidean distance: two characters
+        // can have very different lateral distances while standing at the
+        // same projected depth, and the near/far sprite overlap follows the
+        // view direction.
+        let camera_position = camera.camera_position();
+        let view_direction = camera.view_direction();
+        let view_depth = |entity: &Entity| (entity.get_position() - camera_position).dot(view_direction);
         let mut order: Vec<_> = entities.iter().enumerate().collect();
-        order.sort_by(|(_, left), (_, right)| {
-            camera
-                .distance_to(right.get_position())
-                .total_cmp(&camera.distance_to(left.get_position()))
-        });
+        order.sort_by(|(_, left), (_, right)| view_depth(right).total_cmp(&view_depth(left)));
         order
             .into_iter()
             .for_each(|(index, entity)| entity.render(instructions, camera, index != 0, client_tick));
