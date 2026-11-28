@@ -55,6 +55,10 @@ impl Entity {
         self.get_common_mut().set_status_tint(tint);
     }
 
+    pub fn set_status_pulse_outline(&mut self, active: bool) {
+        self.get_common_mut().set_status_pulse_outline(active);
+    }
+
     pub fn set_weapon_blink(&mut self, blink: bool) {
         self.get_common_mut().set_weapon_blink(blink);
     }

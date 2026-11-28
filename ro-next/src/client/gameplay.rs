@@ -455,6 +455,27 @@ impl Client {
         self.status_aura_frame = self.status_aura_frame.wrapping_add(1);
         let frame = self.status_aura_frame;
 
+        // Official `CPc::ApplyLayerEffects` enables the white pulse outline
+        // while EFST_ASSUMPTIO / EFST_ASSUMPTIO2 is active. It is a render
+        // flag, not a spawned aura; reconcile it before the glow pass so an
+        // ended status clears the outline immediately.
+        let pulse_entity_ids: HashSet<u32> = {
+            let statuses = self.client_state.follow(client_state().status_effects());
+            statuses
+                .effects()
+                .iter()
+                .filter(|status| matches!(status.status_index(), 110 | 473))
+                .map(|status| status.entity_id())
+                .collect()
+        };
+        {
+            let entities = self.client_state.follow_mut(client_state().entities());
+            for entity in entities.iter_mut() {
+                let active = pulse_entity_ids.contains(&entity.get_entity_id().0) && !entity.is_dead() && !entity.is_fading();
+                entity.set_status_pulse_outline(active);
+            }
+        }
+
         let statuses = self.client_state.follow(client_state().status_effects());
         let entities = self.client_state.follow(client_state().entities());
 

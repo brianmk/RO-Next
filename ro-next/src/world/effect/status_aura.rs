@@ -379,19 +379,21 @@ mod tests {
     use crate::world::{StatusAuraKind, StatusAuraSpec, status_aura_spec};
 
     #[test]
-    fn assumptio_and_party_assumptio_have_the_same_glow() {
-        // EFST_ASSUMPTIO (110) and EFST_ASSUMPTIO2 (473) are one data row.
-        let assumptio = status_aura_spec(110).expect("Assumptio must have a glow");
-        let party_assumptio = status_aura_spec(473).expect("party Assumptio must have a glow");
-        assert_eq!(assumptio, party_assumptio);
-        assert_eq!(assumptio.kind, StatusAuraKind::PersistentGlow);
+    fn assumptio_has_no_procedural_aura() {
+        // Assumptio is `render.flags & 8`, the white pulse outline ported in
+        // `world/entity/common.rs`; it must not spawn a separate status glow.
+        for status_index in [110_u16, 473] {
+            assert!(
+                status_aura_spec(status_index).is_none(),
+                "status {status_index} must not have a procedural aura"
+            );
+        }
     }
 
     #[test]
-    fn only_assumptio_has_a_persistent_aura() {
-        // Only Assumptio keeps a visual on the character; Blessing (10),
-        // Increase Agility (12), Angelus (9) and Improve Concentration (3)
-        // must not leave a persistent glow.
+    fn only_documented_statuses_have_a_persistent_aura() {
+        // Blessing (10), Increase Agility (12), Angelus (9) and Improve
+        // Concentration (3) must not leave a persistent glow.
         for status_index in [3_u16, 9, 10, 12] {
             assert!(
                 status_aura_spec(status_index).is_none(),
@@ -400,7 +402,7 @@ mod tests {
         }
 
         // Statuses without a data row (and unknown ids) never spawn a glow.
-        for status_index in [0_u16, 28, 875, 883, 30_000] {
+        for status_index in [0_u16, 28, 110, 473, 875, 883, 30_000] {
             assert!(
                 status_aura_spec(status_index).is_none(),
                 "status {status_index} has an unexpected glow"
@@ -409,76 +411,10 @@ mod tests {
     }
 
     #[test]
-    fn assumptio_glow_is_large_enough_to_cover_the_character() {
-        // A character is 21 world units tall. The body shield must be larger
-        // than the character (so the glow is visible over the whole body) and
-        // the ground light pool must be at least as wide as the character is
-        // tall, otherwise the aura is only a speck at the feet (the reason the
-        // user reported that Assumptio shows no glow at all). These are data
-        // invariants of the committed Assumptio row, checked here so a data
-        // edit cannot silently regress the visual.
-        let spec = status_aura_spec(110).expect("Assumptio must have a glow");
-
-        assert!(spec.body_size >= 24.0, "body shield too small: {}", spec.body_size);
-        assert!(spec.body_glow_size >= 12.0, "body light too small: {}", spec.body_glow_size);
-        assert!(
-            spec.ground_radius * 2.0 >= 21.0,
-            "ground light too small: {}",
-            spec.ground_radius
-        );
-        assert!(spec.body_alpha >= 0.5, "body shield too faint: {}", spec.body_alpha);
-        assert!(spec.ground_alpha >= 0.35, "ground light too faint: {}", spec.ground_alpha);
-        assert!(spec.body_height > 0.0 && spec.body_height < 21.0);
-
-        // Every layer must use a texture from the 2019 data set and the body
-        // shield must be animated.
-        assert!(!spec.ground_texture.is_empty());
-        assert!(!spec.ring_texture.is_empty());
-        assert!(!spec.body_glow_texture.is_empty());
-        assert!(!spec.body_frames.is_empty(), "body glow has no texture");
-        assert!(spec.body_frames.iter().all(|frame: &&str| !frame.is_empty()));
-        assert!(spec.body_frame_rate > 0.0);
-        assert!(spec.body_camera_offset > 0.0);
-
-        // Assumptio is the only persistent status glow and it must be white.
-        assert_eq!(spec.ground_texture, "effect\\whitelight.tga");
-        assert_eq!(spec.ring_texture, "effect\\whitelight.tga");
-        assert_eq!(spec.body_glow_texture, "effect\\whitelight.tga");
-        assert_eq!(spec.body_frames, &["effect\\whitelight.tga"]);
-        assert_eq!(
-            (spec.ground_color.red, spec.ground_color.green, spec.ground_color.blue),
-            (1.0, 1.0, 1.0)
-        );
-        assert_eq!(
-            (spec.body_color.red, spec.body_color.green, spec.body_color.blue),
-            (1.0, 1.0, 1.0)
-        );
-        assert_eq!(
-            (spec.glow_color.red, spec.glow_color.green, spec.glow_color.blue),
-            (1.0, 1.0, 1.0)
-        );
-        assert_eq!(spec.ground_radius, 11.0);
-        assert_eq!(spec.ring_radius, 7.5);
-        assert_eq!(spec.body_size, 26.0);
-        assert_eq!(spec.body_glow_size, 15.0);
-        assert_eq!(spec.ground_alpha, 0.45);
-        assert_eq!(spec.ring_alpha, 0.5);
-        assert_eq!(spec.body_alpha, 0.55);
-        assert_eq!(spec.body_glow_alpha, 0.45);
-        assert_eq!(spec.body_frame_rate, 8.0);
-        assert_eq!(spec.ring_rotation_speed, 0.5);
-        assert_eq!(spec.body_rotation_speed, 0.25);
-        assert_eq!(spec.body_camera_offset, 2.5);
-        assert_eq!(spec.pulse_speed, 2.0);
-        assert_eq!(spec.pulse_amount, 0.18);
-        assert_eq!(spec.body_height, 13.0);
-    }
-
-    #[test]
     fn every_aura_spec_is_renderable() {
         // The renderer only supports `PersistentGlow`; the data loader rejects
         // other kinds, so every spec reachable here must be valid.
-        for status_index in [110_u16, 473] {
+        for status_index in [2_u16, 25, 31, 68, 86, 87, 107, 123, 161, 165, 166, 167, 188, 232, 235, 437] {
             let spec = status_aura_spec(status_index).unwrap_or_else(|| panic!("status {status_index} must have an aura"));
             assert_eq!(spec.kind, StatusAuraKind::PersistentGlow);
             assert!((0.0..=1.0).contains(&spec.ground_alpha));

@@ -23,11 +23,9 @@
 //               server only says "this status sends values"; what a value
 //               *means* is not part of the wire/DB facts),
 // * `auras`   - persistent status glow specs:
-//               * Assumptio: the procedural reproduction of the official
-//                 `EF_ASSUMPTIO` shield moved verbatim out of
-//                 `world/effect/status_aura.rs` (commit 48a10e20: centered
-//                 shield, animated water-field body frames, `whitelight.tga`
-//                 ground/body glow, sitting-aware body height),
+//               * Assumptio is not a data aura: the official client draws it
+//                 as `render.flags & 8` (the white pulse outline ported in
+//                 `world/entity/common.rs`), so it has no row here,
 //               * Blessing/Increase Agility/Angelus/Improve Concentration:
 //                 documented **procedural** additions (the official client has
 //                 no persistent loop effect for these; it only plays the
@@ -100,37 +98,6 @@
     ],
 
     auras: [
-        // Assumptio: the official EF_ASSUMPTIO only sets a render flag (and
-        // EF_ASSUMPTIO2 carries the geometry), so the white-light glow below is
-        // a procedural reproduction, not official textura data.
-        (
-            ids: [110, 473],
-            name: "Assumptio",
-            kind: PersistentGlow,
-            source: "procedural white glow for Assumptio (EFST_ASSUMPTIO/EFST_ASSUMPTIO2); textures verified in data.grf",
-            ground_texture: "effect\\whitelight.tga",
-            ring_texture: "effect\\whitelight.tga",
-            body_frames: ["effect\\whitelight.tga"],
-            body_glow_texture: "effect\\whitelight.tga",
-            ground_color: (1.0, 1.0, 1.0),
-            body_color: (1.0, 1.0, 1.0),
-            glow_color: (1.0, 1.0, 1.0),
-            ground_radius: 11.0,
-            ring_radius: 7.5,
-            body_size: 26.0,
-            body_glow_size: 15.0,
-            ground_alpha: 0.45,
-            ring_alpha: 0.5,
-            body_alpha: 0.55,
-            body_glow_alpha: 0.45,
-            body_frame_rate: 8.0,
-            ring_rotation_speed: 0.5,
-            body_rotation_speed: 0.25,
-            body_camera_offset: 2.5,
-            pulse_speed: 2.0,
-            pulse_amount: 0.18,
-            body_height: 13.0,
-        ),
         (
             ids: [2],
             name: "Two-Hand Quicken",

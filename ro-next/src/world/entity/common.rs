@@ -126,6 +126,11 @@ pub struct Common {
     pub(crate) status_weapon_additive: bool,
     /// Body alpha multiplier from a status visual (`BodyFade`), `None` = 1.0.
     pub(crate) status_alpha: Option<f32>,
+    /// Assumptio's official `render.flags & 8` pulse outline: every body layer
+    /// is redrawn slightly expanded with the additive `0x78FFFFFF` tint
+    /// (`Player.cpp:1085-1124`). Driven by the active Assumptio status, not by
+    /// a procedural glow.
+    pub(crate) status_pulse_outline: bool,
     /// `render.effectPhase` (`RenderObjectState.h:127`, `short`) written by a
     /// ported effect body (`port/visual.rs` replays it every frame; `None` =
     /// never written).
@@ -514,6 +519,7 @@ impl Common {
             status_body_additive: false,
             status_weapon_additive: false,
             status_alpha: None,
+            status_pulse_outline: false,
             render_effect_phase: None,
             render_tint_phase: None,
             render_shrink_phase: None,
@@ -805,6 +811,11 @@ impl Common {
 
     pub fn set_status_alpha(&mut self, alpha: Option<f32>) {
         self.status_alpha = alpha;
+    }
+
+    /// Enables the official Assumptio pulse outline (`Player.cpp:1085`).
+    pub fn set_status_pulse_outline(&mut self, active: bool) {
+        self.status_pulse_outline = active;
     }
 
     /// Records `render.effectPhase` from a ported effect body
@@ -1738,6 +1749,37 @@ impl Common {
                     );
                 }
             }
+        }
+
+        // Assumptio: official `render.flags & 8` pulse outline
+        // (`Player.cpp:1085-1124`). `ApplyLayerEffects` expands every body layer
+        // by `400 / desiredDistance * (sin(wavePhase) + 3)` and redraws it with
+        // the additive `0x78FFFFFF` colour. The port approximates the
+        // screen-space spread as a scale factor on the world-space sprite; the
+        // colour, additive blend and pulse ramp are exact.
+        if self.status_pulse_outline
+            && let Some(animation_data) = self.animation_data.as_ref()
+        {
+            let phase = ((client_tick.0 / 16).wrapping_mul(4) % 181) as f32;
+            let pulse = phase.to_radians().sin() * 1.5 + 5.0;
+            let spread_scale = 1.0 + pulse * 0.012;
+            animation_data.render(
+                instructions,
+                camera,
+                add_to_picker,
+                self.entity_id,
+                body_position,
+                &self.animation_state,
+                self.direction,
+                alpha * (0x78 as f32 / 255.0),
+                Color::rgb_u8(255, 255, 255),
+                self.scale * spread_scale,
+                self.imf.as_deref(),
+                true,
+                false,
+                -0.01,
+                1.0,
+            );
         }
 
         if let Some(animation_data) = self.animation_data.as_ref() {

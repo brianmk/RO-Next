@@ -1665,10 +1665,12 @@ mod tests {
 
     #[test]
     fn status_aura_subsystem_stays_available() {
-        // The Assumptio persistent glow is status-driven and not tied to skill
-        // packets; the pipeline keeps it separable but reachable.
-        assert!(crate::world::status_aura_spec(110).is_some());
-        assert!(crate::world::status_aura_spec(473).is_some());
+        // Assumptio is the official render.flags & 8 pulse outline, not a data
+        // aura. The data-driven aura pipeline remains available for the other
+        // documented status glows (Fury here).
+        assert!(crate::world::status_aura_spec(110).is_none());
+        assert!(crate::world::status_aura_spec(473).is_none());
+        assert!(crate::world::status_aura_spec(86).is_some());
         assert!(crate::world::status_aura_spec(65_500).is_none());
     }
 
