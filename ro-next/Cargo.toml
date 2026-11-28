@@ -1,6 +1,6 @@
 [package]
 name = "ro-next"
-version = "0.2.56"
+version = "0.2.57"
 edition.workspace = true
 license.workspace = true
 

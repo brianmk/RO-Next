@@ -94,8 +94,13 @@ impl Client {
         }
 
         time_phase!("create adapter", {
+            // Native Windows defaults to DX12. `WGPU_BACKEND` still overrides
+            // this (for example `WGPU_BACKEND=vulkan`), but an unset
+            // environment no longer lets wgpu pick Vulkan first on NVIDIA.
+            let default_backends = if cfg!(target_os = "windows") { Backends::DX12 } else { Backends::all() };
+
             let instance = Instance::new(InstanceDescriptor {
-                backends: Backends::all().with_env(),
+                backends: default_backends.with_env(),
                 flags: InstanceFlags::from_build_config().with_env(),
                 memory_budget_thresholds: MemoryBudgetThresholds::default(),
                 backend_options: BackendOptions {
