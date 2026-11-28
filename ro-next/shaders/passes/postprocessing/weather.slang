@@ -39,14 +39,12 @@ func mapleShape(value: float2) -> float {
 }
 
 func snowShape(value: float2) -> float {
-    // Six soft lobes around a bright center. The previous shape was three
-    // crossing bars, which turned into dashes as soon as the card tilted.
+    // Snow is rendered as a soft round flake. Sharp six-point stars looked
+    // like paper cutouts at gameplay scale; a tiny radial modulation keeps a
+    // hint of crystal structure without producing visible spikes.
     let radius = length(value);
     let angle = atan2(value.y, value.x);
-    let lobes = 0.070 + 0.038 * pow(abs(cos(3.0 * angle)), 7.0);
-    let body = radius - lobes;
-    let center = radius - 0.042;
-    return min(body, center);
+    return radius - (0.036 + 0.004 * cos(6.0 * angle));
 }
 
 func noise2(value: float2) -> float {
@@ -143,14 +141,20 @@ func particleLayer(
     // Smaller base particles; zooming in makes them slightly larger because
     // the screen-space shader does not inherit the camera projection's scale.
     let zoom = clamp(global_uniforms.weather.w, 0.65, 1.6);
-    let scale = (0.34 + 0.22 * hash21(cell + float2(3.0, seed))) * (0.62 + depth * 0.55) * zoom;
+    var scale = (0.34 + 0.22 * hash21(cell + float2(3.0, seed))) * (0.62 + depth * 0.55) * zoom;
+    if (shape == 2u) {
+        // Snowflakes are small and soft at normal camera distance.
+        scale *= 0.72;
+    }
+
+    let shaped = local / scale;
     var distance = 0.0;
     if (shape == 0u) {
-        distance = sakuraShape(local / scale);
+        distance = sakuraShape(shaped);
     } else if (shape == 1u) {
-        distance = mapleShape(local / scale);
+        distance = mapleShape(shaped);
     } else {
-        distance = snowShape(local / scale);
+        distance = snowShape(shaped);
     }
 
     // Depth shading: the near face is a little brighter than the edge.
@@ -159,10 +163,14 @@ func particleLayer(
     var alpha = smoothstep(0.012, -0.012, distance) * (0.38 + 0.28 * random) * (0.55 + depth * 0.55);
 
     if (shape == 2u) {
-        // Soft halo around each flake hides the hard SDF edge at small sizes.
-        let radial = length(local);
-        let halo = exp(-radial * radial * 95.0) * (0.10 + 0.08 * depth);
-        alpha = max(alpha, halo);
+        // Soft flake: wide, low-contrast core plus an even wider halo. Do not
+        // use the hard SDF edge here; at 10-20 px it reads as a white star.
+        let radial = length(shaped);
+        let core = smoothstep(0.075, 0.0, radial);
+        let halo = smoothstep(0.55, 0.0, radial) * (0.035 + 0.025 * depth);
+        let snow_alpha = (core * 0.40 + halo) * (0.65 + 0.25 * random) * (0.55 + depth * 0.5);
+        let snow_tint = lerp(tint, float3(0.78, 0.86, 1.0), 0.35);
+        return float4(snow_tint * (0.80 + 0.20 * core), min(0.55, snow_alpha));
     }
 
     return float4(shaded, alpha);
