@@ -193,9 +193,10 @@ func cloudLayer(p: float2, camera_offset: float2, time: float, scale: float, dir
 func weatherSheets(uv: float2, kind: uint, time: float, intensity: float) -> float4 {
     let aspect = max(1.0, float(global_uniforms.forward_size.x) / max(1.0, float(global_uniforms.forward_size.y)));
     let p = float2(uv.x * aspect, uv.y);
-    // World anchoring: use Z directly so walking north makes the fog appear
-    // to slide south (the opposite screen direction), not follow the player.
-    let camera_offset = float2(global_uniforms.camera_position.x, global_uniforms.camera_position.z);
+    // World anchoring: invert Z against the camera scroll so walking north
+    // slides the fog south (and walking south slides it north), rather than
+    // adding the player's movement to the fog's own drift.
+    let camera_offset = float2(global_uniforms.camera_position.x, -global_uniforms.camera_position.z);
 
     if (kind == 4u) {
         let far = cloudLayer(p, camera_offset, time, 1.7, float2(-0.4, 0.9), 0.45, 0.008, float3(0.72, 0.80, 0.94), 0.10 * intensity);
@@ -208,9 +209,9 @@ func weatherSheets(uv: float2, kind: uint, time: float, intensity: float) -> flo
     if (kind == 5u) {
         // Three independent fog layers: broad background, rolling middle and
         // fast low wisps. Each has a different direction and parallax factor.
-        let far = cloudLayer(p, camera_offset, time, 1.3, float2(-0.35, 0.9), 0.28, 0.010, float3(0.52, 0.61, 0.74), 0.13 * intensity);
-        let middle = cloudLayer(p, camera_offset, time, 2.4, float2(0.75, 0.45), 0.48, 0.024, float3(0.64, 0.72, 0.84), 0.12 * intensity);
-        let near = cloudLayer(p, camera_offset, time, 4.3, float2(-0.8, 0.2), 0.78, 0.045, float3(0.76, 0.82, 0.92), 0.10 * intensity);
+        let far = cloudLayer(p, camera_offset, time, 1.3, float2(-0.35, 0.9), 0.075, 0.010, float3(0.52, 0.61, 0.74), 0.050 * intensity);
+        let middle = cloudLayer(p, camera_offset, time, 2.4, float2(0.75, 0.45), 0.125, 0.024, float3(0.64, 0.72, 0.84), 0.040 * intensity);
+        let near = cloudLayer(p, camera_offset, time, 4.3, float2(-0.8, 0.2), 0.220, 0.045, float3(0.76, 0.82, 0.92), 0.030 * intensity);
 
         let alpha = far.a + middle.a * (1.0 - far.a) + near.a * (1.0 - far.a) * (1.0 - middle.a);
         let color = (far.rgb * far.a + middle.rgb * middle.a + near.rgb * near.a) / max(alpha, 0.0001);
