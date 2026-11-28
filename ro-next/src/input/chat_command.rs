@@ -261,5 +261,8 @@ mod tests {
         assert_eq!(translate_slash_command("/whisper Bob hello"), None);
         assert_eq!(translate_slash_command("/where"), None);
         assert_eq!(translate_slash_command("/where Bob"), None);
+        assert_eq!(translate_slash_command("/weather"), None);
+        assert_eq!(translate_slash_command("/weather snow"), None);
+        assert_eq!(translate_slash_command("/env"), None);
     }
 }
