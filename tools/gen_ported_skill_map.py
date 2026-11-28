@@ -235,6 +235,16 @@ SOULLINK_SKILLS = {445, 447, 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 4
 MANUAL_MAPPINGS: list[tuple[int, str, str, str]] = [
     (2017, "Gumgang3", "Success", "GameModePackets.cpp:19890-19901 (RK_STORMBLAST target->LaunchEffect(EF_GUMGANG3))"),
     (735, "Gumgang5", "Success", "GameModePackets.cpp:19508-19513 (NPC_MANDRAGORA source->LaunchEffect(EF_GUMGANG5))"),
+    (490, "Aciddemon", "Success", "RagEffect.cpp:21396-21401 (EF_ACIDDEMON)"),
+    (2476, "Chemical2dash2", "Success", "RagEffect.cpp:19847-19861 (EF_CHEMICAL2DASH2)"),
+    (2477, "Chemical2dash", "Success", "RagEffect.cpp:21489-21505 (EF_CHEMICAL2DASH)"),
+    (2217, "TetraGround", "Success", "RagEffect.cpp:20190-20202 (EF_TETRA_GROUND)"),
+    (659, "Dragonfear", "Success", "RagEffect.cpp:21940-21948 (EF_DRAGONFEAR)"),
+    (83, "Meteorstorm", "Success", "RagEffect.cpp:24950-24960 (EF_METEORSTORM)"),
+    (85, "Lord", "Success", "RagEffect.cpp:24935-24945 (EF_LORD)"),
+    (484, "Gravitation", "Success", "RagEffect.cpp:14550-14560 (EF_GRAVITATION)"),
+    (80, "Firepillarbomb", "Success", "RagEffect.cpp:24977-25010 (EF_FIREPILLARBOMB)"),
+    (2267, "SuiExplosion", "Success", "RagEffect.cpp:25178-25190 (EF_SUI_EXPLOSION)"),
 ]
 
 CURATED_EXTRA_EFFECTS: dict[int, tuple[str, str, str]] = {

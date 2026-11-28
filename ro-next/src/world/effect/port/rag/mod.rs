@@ -9,6 +9,7 @@ pub mod aqua;
 pub mod aspersio;
 pub mod asura;
 pub mod volcano;
+pub mod missing;
 pub mod bash;
 pub mod begin_spell_rings;
 pub mod begin_spell_swirl;

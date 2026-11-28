@@ -15,7 +15,7 @@ use super::super::primitive::PrimitiveId;
 use super::super::runtime::{EffectRuntime, PortedEffect};
 
 /// One `CVolcanoEffect` shockwave ring.
-fn shockwave(runtime: &mut EffectRuntime, texture: &'static str) {
+pub(crate) fn shockwave(runtime: &mut EffectRuntime, texture: &'static str) {
     if runtime.frame != 0 {
         return;
     }

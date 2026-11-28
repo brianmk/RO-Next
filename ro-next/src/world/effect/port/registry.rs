@@ -40,6 +40,10 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         return Some(body);
     }
 
+    if let Some(body) = super::rag::missing::spawn(effect) {
+        return Some(body);
+    }
+
     if let Some(body) = super::registry_textured_aura::spawn(effect) {
         return Some(body);
     }
@@ -522,7 +526,7 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
 /// 20-60, and `Hit2` is gated on `stateCnt == 0`, so the original never spawns
 /// a shard (`RagEffect.cpp:23293-23301`, `:807-812`). The body is sound-only.
 pub fn spawns_no_geometry(effect: EffectId) -> bool {
-    matches!(effect, EffectId::Napalmvalcan | EffectId::Jumpkick)
+    matches!(effect, EffectId::Napalmvalcan | EffectId::Jumpkick | EffectId::ScreenQuake)
 }
 
 /// Whether the effect opens an official `.str` screen-sprite resource
@@ -552,6 +556,18 @@ pub fn ported_ids() -> Vec<EffectId> {
     ids.extend_from_slice(super::registry_batch_l::ids());
 
     ids.extend_from_slice(&[
+        EffectId::ScreenQuake,
+        EffectId::Aciddemon,
+        EffectId::Chemical2,
+        EffectId::Chemical2dash,
+        EffectId::Chemical2dash2,
+        EffectId::Dragonfear,
+        EffectId::SuiExplosion,
+        EffectId::TetraGround,
+        EffectId::Gravitation,
+        EffectId::Firepillarbomb,
+        EffectId::Meteorstorm,
+        EffectId::Lord,
         EffectId::Hit2,
         EffectId::Endure,
         EffectId::Blessing,
