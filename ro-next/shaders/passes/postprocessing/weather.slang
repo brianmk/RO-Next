@@ -143,8 +143,8 @@ func particleLayer(
     let zoom = clamp(global_uniforms.weather.w, 0.65, 1.6);
     var scale = (0.34 + 0.22 * hash21(cell + float2(3.0, seed))) * (0.62 + depth * 0.55) * zoom;
     if (shape == 2u) {
-        // Snowflakes are small and soft at normal camera distance.
-        scale *= 0.72;
+        // Snowflakes are tiny specks at normal camera distance.
+        scale *= 0.42;
     }
 
     let shaped = local / scale;
@@ -163,14 +163,14 @@ func particleLayer(
     var alpha = smoothstep(0.012, -0.012, distance) * (0.38 + 0.28 * random) * (0.55 + depth * 0.55);
 
     if (shape == 2u) {
-        // Soft flake: wide, low-contrast core plus an even wider halo. Do not
-        // use the hard SDF edge here; at 10-20 px it reads as a white star.
+        // Small soft speck; only a faint atmospheric halo. The previous wide
+        // halo made the flakes read as large glowing orbs.
         let radial = length(shaped);
-        let core = smoothstep(0.075, 0.0, radial);
-        let halo = smoothstep(0.55, 0.0, radial) * (0.035 + 0.025 * depth);
-        let snow_alpha = (core * 0.40 + halo) * (0.65 + 0.25 * random) * (0.55 + depth * 0.5);
-        let snow_tint = lerp(tint, float3(0.78, 0.86, 1.0), 0.35);
-        return float4(snow_tint * (0.80 + 0.20 * core), min(0.55, snow_alpha));
+        let core = smoothstep(0.060, 0.0, radial);
+        let halo = smoothstep(0.18, 0.0, radial) * (0.010 + 0.008 * depth);
+        let snow_alpha = (core * 0.30 + halo) * (0.55 + 0.25 * random) * (0.55 + depth * 0.5);
+        let snow_tint = lerp(tint, float3(0.82, 0.88, 1.0), 0.30);
+        return float4(snow_tint * (0.82 + 0.18 * core), min(0.34, snow_alpha));
     }
 
     return float4(shaded, alpha);
