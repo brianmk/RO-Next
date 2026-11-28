@@ -108,6 +108,14 @@ PHASE_PREFERENCE = {
 # master position, `runtime.target_offset` the target).
 TARGET_PHASES = {"Ground", "Release", "Hit"}
 
+# Support/buff skills whose official `LaunchEffect` runs on `target`, not on
+# `source` (the `successEffectId` field alone does not encode the actor):
+# `GameModePackets.cpp` cases for AL_INCAGI/AL_BLESSING/AL_DECAGI/AL_CURE/
+# PR_IMPOSITIO/PR_SUFFRAGIUM/PR_ASPERSIO/PR_STRECOVERY/PR_LEXDIVINA/
+# PR_LEXAETERNA/ALL_RESURRECTION/TF_DETOXIFY/PR_SLOWPOISON. PR_KYRIE,
+# PR_MAGNIFICAT, PR_GLORIA and AL_ANGELUS stay on the caster (`source`).
+TARGETED_CAST_SKILLS = {29, 30, 34, 35, 53, 54, 66, 67, 68, 71, 72, 76, 78}
+
 # `JobInheritance.cpp:2086` (`AS_GRIMTOOTH`) and `:2100` (`AS_SPEARBOOMERANG`
 # via `PlaySkillEffect`) launch these on the source actor; both bodies travel
 # from `runtime.position` towards `runtime.target_offset`.
@@ -472,6 +480,9 @@ def main() -> int:
 
         if effect_name in TRAVEL_FROM_CASTER:
             anchor = "Caster"
+
+        if skill in TARGETED_CAST_SKILLS:
+            anchor = "Target"
 
         if skill in SOULLINK_SKILLS:
             # `GameModePackets.cpp:19425-19439` (`SL_SOULLINKER` and the other
