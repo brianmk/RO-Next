@@ -121,6 +121,14 @@ pub trait EffectBase {
     fn take_spawned_effects(&mut self) -> Vec<Box<dyn EffectBase + Send + Sync>> {
         Vec::new()
     }
+    /// Screen-shake requests (`MM_QUAKE`) recorded since the last call.
+    ///
+    /// Ported effect bodies count their quakes on the runtime; the holder
+    /// drains them here so the camera can apply the shake for the frame. The
+    /// default has no shake.
+    fn take_shakes(&mut self) -> u32 {
+        0
+    }
 }
 
 pub trait EffectSourceExt {
@@ -734,6 +742,8 @@ pub struct EffectHolder {
     cull_distance: f32,
     /// Effects dropped by the budget since startup (telemetry/logging).
     dropped_effects: u64,
+    /// `MM_QUAKE` requests drained from the effects since the last frame.
+    pending_shakes: u32,
     last_drop_log: std::cell::Cell<Option<std::time::Instant>>,
     /// Number of effects rendered / culled by distance in the last frame.
     rendered_in_last_frame: std::cell::Cell<u32>,
@@ -751,6 +761,7 @@ impl Default for EffectHolder {
             ),
             cull_distance: environment_f32(EFFECT_CULL_DISTANCE_ENVIRONMENT_VARIABLE, DEFAULT_EFFECT_CULL_DISTANCE),
             dropped_effects: 0,
+            pending_shakes: 0,
             last_drop_log: std::cell::Cell::new(None),
             rendered_in_last_frame: std::cell::Cell::new(0),
             culled_in_last_frame: std::cell::Cell::new(0),
@@ -772,6 +783,10 @@ impl EffectHolder {
     /// Number of effects dropped by the budget since startup.
     pub fn dropped_effects(&self) -> u64 {
         self.dropped_effects
+    }
+    /// Drain the `MM_QUAKE` requests recorded by the effects this frame.
+    pub fn take_shakes(&mut self) -> u32 {
+        std::mem::take(&mut self.pending_shakes)
     }
 
     /// Whether another effect owned by `entity_id` may be spawned.
@@ -905,10 +920,12 @@ impl EffectHolder {
         let mut index = 0;
 
         while index < self.effects.len() {
-            let alive = {
+            let (alive, shakes) = {
                 let (effect, _) = &mut self.effects[index];
-                effect.update(entities, delta_time)
+                let alive = effect.update(entities, delta_time);
+                (alive, effect.take_shakes())
             };
+            self.pending_shakes += shakes;
 
             if alive {
                 index += 1;

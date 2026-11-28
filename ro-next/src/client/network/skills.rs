@@ -196,6 +196,27 @@ impl Client {
             }
         }
 
+        // Skills whose official dispatch sends `MM_QUAKE` themselves, without
+        // a ported effect body to carry the request. These are the remaining
+        // hand-written quake cases from `GameModePackets.cpp`; skills that have
+        // a ported effect (Fury/Steel Body/SL_SKA via EF_GUMGANG2, Earth Spike,
+        // Heaven's Drive, ...) must not be listed here or they would shake
+        // twice.
+        const DISPATCH_QUAKE_SKILLS: &[SkillId] = &[
+            SkillId(444),  // SG_FUSION
+            SkillId(735),  // NPC_MANDRAGORA
+            SkillId(2492), // GN_MANDRAGORA
+            SkillId(2029), // GC_COUNTERSLASH
+            SkillId(2009), // RK_DRAGONHOWLING
+            SkillId(2017), // RK_STORMBLAST
+            SkillId(359),  // LK_BERSERK
+            SkillId(8206), // MS_BERSERK
+        ];
+
+        if DISPATCH_QUAKE_SKILLS.contains(&skill_id) {
+            self.player_camera.shake(0.65, 0.9);
+        }
+
         // Asura Strike shakes the screen for the local caster (the
         // original client draws no full-screen lettering: the kanji
         // are world layers of the skill effect data).

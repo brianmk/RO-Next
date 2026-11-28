@@ -1578,6 +1578,13 @@ impl Client {
             // apply them after each step (`EffectHolder::update`).
             let entities = self.client_state.follow_mut(client_state().entities());
             self.effect_holder.update(entities.as_mut_slice(), delta_time as f32, client_tick);
+
+            // `MM_QUAKE`: ported effect bodies count their screen shakes on
+            // their runtime; apply the drained requests to the local camera.
+            let shakes = self.effect_holder.take_shakes();
+            if shakes > 0 {
+                self.player_camera.shake(0.65, 0.9);
+            }
         }
 
         let current_camera: &(dyn Camera + Send + Sync) = match currently_playing {

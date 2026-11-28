@@ -349,6 +349,10 @@ impl EffectBase for PortedVisual {
     ///   phases for tint/pulse/outline now, and record-only for effectPhase and
     ///   runStartTick (see `world::entity::Common`'s field docs for the
     ///   official consumers that would read them).
+    fn take_shakes(&mut self) -> u32 {
+        std::mem::take(&mut self.holder.runtime_mut().shakes)
+    }
+
     fn apply_caster_state(&mut self, entity: &mut crate::world::Entity, client_tick: ragnarok_packets::ClientTick) {
         // The official effect body starts every frame by copying
         // `parent->render.position` into its own `render.position`; the port's
