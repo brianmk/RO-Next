@@ -114,6 +114,8 @@ pub(crate) struct GlobalUniforms {
     _fog_padding: [f32; 2],
     /// Character/NPC-only night fill (rgb colour, a intensity).
     moon_fill: [f32; 4],
+    /// Procedural weather: x kind, y time, z intensity, w seed.
+    weather: [f32; 4],
 }
 
 #[derive(Copy, Clone, Pod, Zeroable)]
@@ -499,6 +501,7 @@ impl Prepare for GlobalContext {
             fog_range: instructions.uniforms.fog_range,
             _fog_padding: [0.0; 2],
             moon_fill: instructions.uniforms.moon_fill.components_linear(),
+            weather: instructions.uniforms.weather,
         };
 
         self.directional_light_uniforms = DirectionalLightUniforms {

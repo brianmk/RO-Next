@@ -2096,6 +2096,7 @@ impl Client {
             ambient_light_color: environment_sample.ambient_light_color,
             stylized_lighting,
             moon_fill: environment_sample.moon_fill,
+            weather: self.environment.weather_shader_state(),
             fog_color: scene_fog.map(|fog| Color { alpha: 1.0, ..fog.color }).unwrap_or(Color::TRANSPARENT),
             fog_range: scene_fog.map(|fog| [fog.near, fog.far]).unwrap_or([0.0, 0.0]),
             enhanced_lighting: lighting_mode == LightingMode::Enhanced,

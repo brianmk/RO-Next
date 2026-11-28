@@ -29,4 +29,6 @@ public struct GlobalUniforms {
     public var _fog_padding: float2;
     // Character/NPC-only night fill: rgb colour, a intensity.
     public var moon_fill: float4;
+    // Procedural weather: x kind, y time, z intensity, w seed.
+    public var weather: float4;
 };

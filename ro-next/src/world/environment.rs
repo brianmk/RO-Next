@@ -80,7 +80,7 @@ impl Environment {
     pub fn new(texture_loader: &TextureLoader) -> Self {
         Self {
             elapsed: 0.0,
-            weather: Weather::new(texture_loader),
+            weather: Weather::new(),
             sun_texture: texture_loader
                 .get_or_load("effect\\sun_y_01.bmp", crate::loaders::ImageType::Color)
                 .ok(),
@@ -246,7 +246,12 @@ impl Environment {
     /// clock drives both, so random weather and the sun stay in sync.
     pub fn render(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, screen_size: ScreenSize) {
         self.render_sun(renderer, camera, screen_size);
-        self.weather.render(renderer, camera, screen_size, self.elapsed);
+    }
+
+    /// State for the procedural weather shader: `[kind, time, intensity,
+    /// seed]`.
+    pub fn weather_shader_state(&self) -> [f32; 4] {
+        self.weather.shader_state(self.elapsed)
     }
 
     fn render_sun(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, screen_size: ScreenSize) {
