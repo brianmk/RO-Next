@@ -94,8 +94,19 @@ func particleLayer(uv: float2, aspect: float, density: float, speed: float, seed
     var local = local_cell - center;
     // Horizontal sway grows with the current gust strength.
     local.x += sin(time * (1.2 + random * 0.9) + random * TAU) * wind * 0.075;
-    let rotation = random * TAU + time * (0.35 + random * 0.55);
-    local = rotate2(local, rotation);
+
+    // 3D tumble: a flat petal/flake is projected through roll (screen-plane
+    // spin), yaw (around the vertical axis) and pitch (around the horizontal
+    // axis). Dividing by the projected axis lengths makes the particle turn
+    // edge-on and open up again, instead of only spinning like a sticker.
+    let spin_roll = random * TAU + time * (0.5 + random * 1.1);
+    let spin_yaw = random * TAU + time * (0.35 + random * 1.35);
+    let spin_pitch = random * TAU + time * (0.28 + random * 1.55);
+    local = rotate2(local, spin_roll);
+    let yaw_cos = max(abs(cos(spin_yaw)), 0.18);
+    let pitch_cos = max(abs(cos(spin_pitch)), 0.18);
+    local = float2(local.x / yaw_cos, local.y / pitch_cos);
+
     let scale = 0.75 + 0.35 * hash21(cell + float2(3.0, seed));
     var distance = 0.0;
     if (shape == 0u) {
