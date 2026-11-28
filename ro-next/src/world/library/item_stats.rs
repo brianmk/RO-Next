@@ -358,7 +358,7 @@ mod tests {
     #[test]
     fn compiled_data_file_is_valid_and_sorted() {
         let count = validate_compiled().expect("the compiled item stats data must be valid");
-        assert_eq!(count, 6169, "one row per item of the CondaRO pre-re item database");
+        assert_eq!(count, 28532, "one row per item of the CondaRO pre-re + renewal item databases");
 
         let table = compiled();
         assert!(
@@ -553,7 +553,7 @@ mod tests {
         // The compiled table is embedded in the binary, so a missing/malformed
         // archive override can never leave the client without item stats.
         let loader = GameFileLoader::default();
-        assert_eq!(load(&loader), 6169);
+        assert_eq!(load(&loader), 28532);
         assert_eq!(lookup(ItemId(1104)).map(|stats| stats.attack), Some(39));
     }
 
