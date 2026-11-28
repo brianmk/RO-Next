@@ -276,4 +276,3 @@ pub use white_light_trail::WhiteLightTrail;
 pub use white_spark::{White02Burst, WhiteSparkRing, WhiteSparkStreak};
 pub use whitespray::WhiteSpray;
 
-pub use volcano::VolcanoShockwave;

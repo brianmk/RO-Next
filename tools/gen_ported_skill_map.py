@@ -229,6 +229,14 @@ CURATED_SKILL_EFFECTS: dict[int, tuple[str, str]] = {
 # `client/effects.rs::secondary_ported_effect`.
 SOULLINK_SKILLS = {445, 447, 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 460, 461}
 
+# Rows whose skill is absent from the 2019 coverage data entirely. Unlike
+# `CURATED_EXTRA_EFFECTS`, these are emitted without a coverage-backed test
+# name; they keep the renewal/NPC shockwave effects reachable.
+MANUAL_MAPPINGS: list[tuple[int, str, str, str]] = [
+    (2017, "Gumgang3", "Success", "GameModePackets.cpp:19890-19901 (RK_STORMBLAST target->LaunchEffect(EF_GUMGANG3))"),
+    (735, "Gumgang5", "Success", "GameModePackets.cpp:19508-19513 (NPC_MANDRAGORA source->LaunchEffect(EF_GUMGANG5))"),
+]
+
 CURATED_EXTRA_EFFECTS: dict[int, tuple[str, str, str]] = {
     383: ("Beginspell6", "Cast", "SkillActionInfo.cpp:165-178 -> GameModePackets.cpp:12947-12953/:17551-17559"),
     70: ("BottomSanc", "Ground", "MsgEffect.cpp:600-608 (CSkill::OnProcess UNT_SANCTUARY, LaunchEffect at :602)"),
@@ -477,6 +485,14 @@ def main() -> int:
             raise SystemExit(f"curated extra skill {skill} maps to the unported effect {name}")
         if any(row[0] == skill and row[1] == phase for row in rows):
             raise SystemExit(f"curated extra {skill}/{phase} duplicates a coverage row")
+        anchor = "Target" if phase in TARGET_PHASES else "Caster"
+        rows.append((skill, phase, name_to_id[name], name, anchor))
+
+    for skill, name, phase, _citation in MANUAL_MAPPINGS:
+        if name not in ported_set:
+            raise SystemExit(f"manual mapping {skill} maps to the unported effect {name}")
+        if any(row[0] == skill and row[1] == phase for row in rows):
+            raise SystemExit(f"manual mapping {skill}/{phase} duplicates an existing row")
         anchor = "Target" if phase in TARGET_PHASES else "Caster"
         rows.append((skill, phase, name_to_id[name], name, anchor))
 

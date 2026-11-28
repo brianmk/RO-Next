@@ -917,6 +917,7 @@ pub const MAPPED: &[(SkillId, SkillPhase, EffectId, PortedAnchor)] = &[
     (SkillId(541), SkillPhase::Success, EffectId::Thunderstorm2, PortedAnchor::Caster),
     (SkillId(542), SkillPhase::Success, EffectId::Stin5, PortedAnchor::Caster),
     (SkillId(544), SkillPhase::Success, EffectId::Issen, PortedAnchor::Caster),
+    (SkillId(735), SkillPhase::Success, EffectId::Gumgang5, PortedAnchor::Caster),
     (SkillId(1004), SkillPhase::Release, EffectId::Throwitem6, PortedAnchor::Target),
     (SkillId(1005), SkillPhase::Ground, EffectId::Quakebody4, PortedAnchor::Target),
     (SkillId(1008), SkillPhase::Success, EffectId::Frostweapon, PortedAnchor::Caster),
@@ -940,6 +941,7 @@ pub const MAPPED: &[(SkillId, SkillPhase, EffectId, PortedAnchor)] = &[
         EffectId::Lightningloader,
         PortedAnchor::Caster,
     ),
+    (SkillId(2017), SkillPhase::Success, EffectId::Gumgang3, PortedAnchor::Caster),
 ];
 
 /// The ported effect id `skill` plays at `phase`, if one is registered.
