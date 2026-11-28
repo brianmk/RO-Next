@@ -16,11 +16,13 @@
 //! mood of a map is preserved during the day and the night is a tinted,
 //! darkened version of the same map.
 
-use cgmath::Vector3;
+use cgmath::{InnerSpace, Vector2, Vector3};
+use wgpu::BlendFactor;
 
 use crate::graphics::{Color, ScreenSize};
 use crate::loaders::TextureLoader;
 use crate::renderer::EffectRenderer;
+use crate::world::effect::render_world_quad_blended;
 use crate::world::{Camera, Map, SceneFog, Weather, WeatherKind};
 
 /// Length of the day half of the cycle.
@@ -61,6 +63,7 @@ pub struct EnvironmentSample {
 pub struct Environment {
     elapsed: f32,
     weather: Weather,
+    sun_texture: Option<std::sync::Arc<crate::graphics::Texture>>,
     server_weather: Option<WeatherKind>,
     random_weather: Option<WeatherKind>,
     random_timer: f32,
@@ -76,6 +79,9 @@ impl Environment {
         Self {
             elapsed: 0.0,
             weather: Weather::new(texture_loader),
+            sun_texture: texture_loader
+                .get_or_load("effect\\sun_y_01.bmp", crate::loaders::ImageType::Color)
+                .ok(),
             server_weather: None,
             random_weather: None,
             random_timer: FIRST_WEATHER_DELAY_SECONDS,
@@ -209,14 +215,14 @@ impl Environment {
         let night = self.night_factor();
 
         let base_ambient = map.ambient_light_color();
-        let (base_direction, base_sun) = map.directional_light();
+        let (_, base_sun) = map.directional_light();
 
         let ambient_light_color = modulate(base_ambient, NIGHT_AMBIENT_SCALE, night);
         let directional_light_color = modulate(base_sun, NIGHT_SUN_SCALE, night);
 
         EnvironmentSample {
             ambient_light_color,
-            directional_light_direction: base_direction,
+            directional_light_direction: self.celestial_direction(),
             directional_light_color,
             background_color: self.background_color(map, night),
             scene_fog: map.scene_fog().map(|fog| SceneFog {
@@ -226,10 +232,100 @@ impl Environment {
         }
     }
 
-    /// Renders the active weather. The weather uses the environment clock, not
-    /// the global animation timer, so random weather starts at its own time.
-    pub fn render_weather(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, screen_size: ScreenSize) {
+    /// Renders the active weather and the visible sun/moon. The environment
+    /// clock drives both, so random weather and the sun stay in sync.
+    pub fn render(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, screen_size: ScreenSize) {
+        self.render_sun(renderer, camera, screen_size);
         self.weather.render(renderer, camera, screen_size, self.elapsed);
+    }
+
+    fn render_sun(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, screen_size: ScreenSize) {
+        let Some(texture) = self.sun_texture.as_ref() else {
+            return;
+        };
+        let night = self.night_factor();
+        if night > 0.95 {
+            return;
+        }
+
+        let direction = self.celestial_direction();
+        if direction.y <= 0.0 {
+            return;
+        }
+
+        let focus = camera.focus_point();
+        let position = focus + direction * 700.0;
+        let right = camera.look_up_vector().cross(camera.view_direction()).normalize();
+        let up = camera.view_direction().cross(right).normalize();
+
+        let half_size = 24.0 * (1.0 - night * 0.45);
+        let corners = [
+            position - right * half_size + up * half_size,
+            position + right * half_size + up * half_size,
+            position + right * half_size - up * half_size,
+            position - right * half_size - up * half_size,
+        ];
+        let texture_coordinates = [
+            Vector2::new(0.0, 0.0),
+            Vector2::new(1.0, 0.0),
+            Vector2::new(1.0, 1.0),
+            Vector2::new(0.0, 1.0),
+        ];
+
+        render_world_quad_blended(
+            renderer,
+            camera,
+            position,
+            screen_size,
+            texture.clone(),
+            Color::rgba(1.0, 0.94, 0.78, (1.0 - night) * 0.92),
+            corners,
+            texture_coordinates,
+            BlendFactor::One,
+            BlendFactor::One,
+        );
+
+        // A larger, fainter halo.
+        let halo = 60.0 * (1.0 - night * 0.45);
+        let halo_corners = [
+            position - right * halo + up * halo,
+            position + right * halo + up * halo,
+            position + right * halo - up * halo,
+            position - right * halo - up * halo,
+        ];
+        render_world_quad_blended(
+            renderer,
+            camera,
+            position,
+            screen_size,
+            texture.clone(),
+            Color::rgba(1.0, 0.78, 0.45, (1.0 - night) * 0.12),
+            halo_corners,
+            texture_coordinates,
+            BlendFactor::One,
+            BlendFactor::One,
+        );
+    }
+
+    /// Direction toward the sun during the day and the moon at night.
+    pub fn celestial_direction(&self) -> Vector3<f32> {
+        if self.night_factor() >= 0.5 {
+            let phase = ((self.elapsed - DAY_SECONDS) / NIGHT_SECONDS).rem_euclid(1.0);
+            Vector3::new(
+                -(std::f32::consts::PI * phase).cos(),
+                (std::f32::consts::PI * phase).sin().max(0.15),
+                0.0,
+            )
+            .normalize()
+        } else {
+            let phase = (self.elapsed / DAY_SECONDS).clamp(0.0, 1.0);
+            Vector3::new(
+                (std::f32::consts::PI * phase).cos(),
+                (std::f32::consts::PI * phase).sin().max(0.15),
+                0.0,
+            )
+            .normalize()
+        }
     }
 
     fn background_color(&self, map: &Map, night: f32) -> Color {

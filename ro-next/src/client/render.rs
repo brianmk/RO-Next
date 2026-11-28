@@ -448,8 +448,7 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
         );
 
         self.effect_holder.render(self.effect_renderer, self.current_camera);
-        self.environment
-            .render_weather(self.effect_renderer, self.current_camera, self.screen_size);
+        self.environment.render(self.effect_renderer, self.current_camera, self.screen_size);
         self.render_spirit_spheres();
 
         if let Some(player) = self.client_state.try_follow(this_entity()) {
